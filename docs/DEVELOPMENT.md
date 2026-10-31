@@ -105,14 +105,17 @@ GitHub Actions validates the interactive application. GitHub Pages publishes
 `main` / `/(root)`.
 
 The default URL starts the introductory script immediately. Links from the
-GitHub profile use `?run=launch`: `app.js` keeps the initial `neofetch`
-markup, reconstructs the same `ls -l ~/workspace` listing shown at the end
-of the profile SVG, then types `./launch-interactive.sh` and plays its
-existing animation. This handoff preserves the final SVG scene rather than
-repeating its earlier commands. `?view=listing` displays the listing without
-launching the script, and takes precedence when both parameters are present.
-The virtual listing uses the same five directory names and dates as the
-generated profile SVG. The default route, Run shortcut, input focus and Escape
-handling otherwise remain unchanged.
+GitHub profile use `?run=launch`: `app.js` removes the initially authored
+`neofetch` display (whose markup was previously cloned for later manual use),
+reconstructs the `ls -l ~/workspace` command and listing visible at the end
+of the profile SVG, then types `./launch-interactive.sh` and plays the existing
+animation. The initial output is revealed only after route selection to avoid
+a flash of `neofetch`. This starts the interactive session **at the ls command**,
+not at the beginning of the SVG transcript.
+`?view=listing` displays the listing without launching the script, and takes
+precedence when both parameters are present. The virtual listing uses the
+same five directory names and dates as the generated profile SVG. The direct
+route, Run shortcut, later manual `neofetch`, input focus and Escape handling
+remain unchanged.
 
 See [customization](CUSTOMIZATION.md) to replace the showcased projects.
