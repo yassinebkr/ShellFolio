@@ -173,7 +173,15 @@ sequences = [
     (347, 8.4, 9.3, 9.4),
     (420, 12.1, 13.7, 13.9),
 ]
-row_baselines = [126, 0, 374, 445]
+# Derive each prompt from the real length of the previous command's output.
+# A silent command like cd consumes only its own row, without added blanks.
+LINE_HEIGHT = 24
+next_baseline = sequences[0][0]
+for index, entry in enumerate(transcript):
+    _, start, stop, reveal = sequences[index]
+    sequences[index] = (next_baseline, start, stop, reveal)
+    next_baseline += (1 + len(entry["rows"])) * LINE_HEIGHT
+row_baselines = [baseline + LINE_HEIGHT for baseline, _, _, _ in sequences]
 for i, (entry, (baseline, start, end, reveal)) in enumerate(zip(transcript, sequences)):
     class_name = f'sequence{i}'
     visibility_animation(class_name, start)
@@ -188,10 +196,10 @@ visibility_animation("lastPrompt", 18.0)
 last_x = BODY_X + len('yassine@debian:~/workspace/projects$ ') * CHAR_W
 visuals.append(
     '<g class="lastPrompt">'
-    f'<text x="{BODY_X}" y="631"><tspan fill="#65ed74">{PROMPT}</tspan>'
+    f'<text x="{BODY_X}" y="{next_baseline}"><tspan fill="#65ed74">{PROMPT}</tspan>'
     '<tspan fill="#8fbaff">:~/workspace/projects</tspan>'
     '<tspan fill="#dadada">$ </tspan></text>'
-    f'<rect x="{last_x:.2f}" y="616" width="9" height="17" fill="#dedede" class="cursor"/>'
+    f'<rect x="{last_x:.2f}" y="{next_baseline - 15}" width="9" height="17" fill="#dedede" class="cursor"/>'
     '</g>'
 )
 
@@ -209,12 +217,12 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" view
 <path d="M1006 20h12" stroke="#ddd"/><rect x="1033" y="17" width="8" height="8" fill="none" stroke="#ddd"/>
 <path d="M1058 17l8 8m0-8l-8 8" stroke="#ddd"/>
 <rect x="1" y="37" width="1078" height="29" fill="#2c2c2c"/>
-<rect x="13" y="41" width="44" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="23" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">File</text>
-<rect x="63" y="41" width="43" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="73" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Edit</text>
-<rect x="112" y="41" width="48" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="122" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">View</text>
-<rect x="166" y="41" width="83" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="176" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Terminal</text>
-<rect x="255" y="41" width="49" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="265" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Tabs</text>
-<rect x="310" y="41" width="47" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="320" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Help</text>
+<text x="16" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">File</text>
+<text x="60" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">Edit</text>
+<text x="103" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">View</text>
+<text x="154" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">Terminal</text>
+<text x="229" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">Tabs</text>
+<text x="276" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">Help</text>
 <path d="M1 66H1079" stroke="#4a4a4a"/>
 {''.join(visuals)}
 {render_quick_actions(get_quick_actions())}
