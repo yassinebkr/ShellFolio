@@ -42,6 +42,10 @@ function sleep(ms, signal) {
 }
 
 function scrollToBottom() {
+  // While a visitor is selecting terminal output, never move the viewport
+  // underneath the selection or return focus to the command input.
+  const selection = window.getSelection();
+  if (selection && !selection.isCollapsed && body.contains(selection.anchorNode)) return;
   body.scrollTop = body.scrollHeight;
 }
 
@@ -144,7 +148,8 @@ async function playLaunch(entry, timeline, typedCommand = '') {
       input.readOnly = false;
       form.hidden = false;
       // The persistent quick-action rail remains interactive throughout.
-      input.focus({ preventScroll: true });
+      // Keep the selection and active element untouched. The visitor can
+      // click the prompt to type; completion does not require autofocus.
       refreshCompletion();
       scrollToBottom();
     }
@@ -236,7 +241,7 @@ function submitCommand(value = input.value, { typeCommand = false } = {}) {
     return;
   }
   const raw = String(value).trim();
-  if (!raw) { input.focus(); return; }
+  if (!raw) return;
   const location = engine.location;
   const response = engine.execute(raw);
   if (response.clear) {
@@ -254,8 +259,7 @@ function submitCommand(value = input.value, { typeCommand = false } = {}) {
   historyIndex = engine.history.length;
   input.value = '';
   refreshCompletion();
-  input.focus();
-  body.scrollTop = body.scrollHeight;
+  scrollToBottom();
 }
 
 form.addEventListener('submit', e => { e.preventDefault(); submitCommand(); });
@@ -314,7 +318,7 @@ function renderQuickActions() {
   rail.replaceChildren();
   const label = document.createElement('span');
   label.className = 'quick-label';
-  label.textContent = 'TRY';
+  label.textContent = 'shortcuts';
   rail.appendChild(label);
   for (const shortcut of quickActions) {
     const button = document.createElement('button');
@@ -334,13 +338,14 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     cancelLaunch('skip');
   } else if (event.ctrlKey && event.key.toLowerCase() === 'c') {
+    // Native Ctrl+C must copy selected text even during a running script.
+    // Ctrl+C is a shell interrupt only when there is no text selection.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
     event.preventDefault();
     cancelLaunch('interrupt');
   }
 }, true);
-body.addEventListener('click', e => {
-  if (e.target.closest('a,button,input')) return;
-  input.focus();
-});
+// Clicking terminal output should permit ordinary text selection and copy.
+// Never focus the input on generic body clicks: it collapses browser selection.
 refreshCompletion();
-input.focus({ preventScroll: true });

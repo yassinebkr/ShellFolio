@@ -5,6 +5,7 @@ import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 import { initialScene } from '../startup.js';
 import { quickActions, presetResponses } from '../portfolio.config.js';
 import { readFileSync } from 'node:fs';
+import { quickActions as configuredActions } from '../portfolio.config.js';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -162,4 +163,32 @@ test('XFCE chrome is inert and script lifecycle controls Bash prompt', () => {
   assert.match(app, /output[.]replaceChildren[(][)]/);
   assert.match(app, /document[.]addEventListener[(]'keydown'/);
   assert.ok(css.includes('#prompt-form[hidden] { display: none; }'));
+});
+
+test('script explicitly directs visitors to help or visible shortcuts', () => {
+  const ending = LAUNCH_STEPS[LAUNCH_STEPS.length - 1];
+  assert.match(ending.text, /type help/i);
+  assert.match(ending.text, /shortcuts below/i);
+});
+
+test('copyable output never triggers generic focus stealing', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  assert.doesNotMatch(app, /body\.addEventListener\('click'/);
+  assert.doesNotMatch(app, /input\.focus\(/);
+  assert.match(app, /window\.getSelection\(\)/);
+  assert.match(app, /selection && !selection\.isCollapsed/);
+  assert.match(css, /user-select: text/);
+  assert.ok(configuredActions.length > 0);
+});
+
+test('README demo generator reads shortcut configuration, not a second list', () => {
+  const gen = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
+  const svg = readFileSync(new URL('../assets/demo.svg', import.meta.url), 'utf8');
+  assert.match(gen, /import \{ quickActions \} from '\.\/portfolio\.config\.js'/);
+  assert.match(svg, /id="quick-actions-preview"/);
+  assert.match(svg, />shortcuts<\/text>/);
+  for (const action of configuredActions) {
+    assert.ok(svg.includes('>' + action.label.toLowerCase() + '</text>'));
+  }
 });

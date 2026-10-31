@@ -19,7 +19,7 @@ export const LAUNCH_STEPS = Object.freeze([
   { kind: 'line', text: '  bigbrain     Multi-agent UI and workflow research', delay: 260 },
   { kind: 'line', text: '', delay: 130 },
   { kind: 'progress', label: 'preparing virtual workspace', duration: 600 },
-  { kind: 'type', text: 'Try: projects, skills, or inspect lora', style: 'green', speed: 15, delay: 140 }
+  { kind: 'type', text: 'Type help to list commands, or use the shortcuts below to explore.', style: 'green', speed: 15, delay: 140 }
 ]);
 
 /**

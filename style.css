@@ -219,38 +219,6 @@ body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--te
 }
 .sys-user { overflow-wrap: normal; }
 #prompt-form { min-height: 24px; }
-.quick-commands {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px;
-  margin-top: 25px;
-  padding-top: 12px;
-  border-top: 1px solid #222;
-}
-.quick-label {
-  color: #7b8187;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  margin-right: 4px;
-}
-.quick-commands button {
-  border: 1px solid #373a40;
-  border-radius: 3px;
-  background: #121518;
-  color: #aeb9c7;
-  font: 11px/1.4 var(--mono);
-  padding: 4px 7px;
-}
-.quick-commands button:hover {
-  border-color: #60816b;
-  background: #1c2420;
-  color: #a5ecb1;
-}
-.quick-commands button:focus-visible {
-  outline: 2px solid #8fbaff;
-  outline-offset: 2px;
-}
 @media (max-width: 700px) {
   body { display: block; padding: 0; }
   .terminal { width: 100%; max-width: 100%; }
@@ -292,31 +260,62 @@ body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--te
 .terminal > .menu-bar { gap: 18px; pointer-events: none; }
 .terminal > .menu-bar > span { display: inline-block; flex: none; cursor: default; }
 #prompt-form[hidden] { display: none; }
+/* A restrained text navigation strip, not a dashboard of filled pills.
+ * Each label remains a real button, with a visible hover/focus affordance.
+ */
 .terminal > .quick-commands {
   flex: none;
-  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 2px 15px;
   margin: 0;
-  padding: 10px 17px;
-  background: #0d1013;
-  border-top: 1px solid #30343a;
+  padding: 9px 22px;
+  min-height: 46px;
+  background: #080909;
+  border-top: 1px solid #282c30;
+}
+.quick-label {
+  flex: none;
+  margin-right: 12px;
+  color: #777f87;
+  font: 11px/1.5 var(--mono);
+  user-select: none;
 }
 .terminal > .quick-commands button {
-  background: #1a2025;
-  color: #bdcbd8;
-  border-color: #434b54;
+  appearance: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 1px;
+  color: #a0abb3;
+  font: 12px/1.5 var(--mono);
+  text-transform: lowercase;
+  text-decoration: none;
+  cursor: pointer;
 }
+.terminal > .quick-commands button:first-of-type { color: #bedcc2; }
 .terminal > .quick-commands button:hover {
-  background: #253429;
-  border-color: #639673;
-  color: #c3f3cd;
+  background: transparent;
+  border: 0;
+  color: #e5e8e9;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.terminal > .quick-commands button:focus-visible {
+  outline: 1px solid #a0bbff;
+  outline-offset: 4px;
+}
+.terminal-body, .terminal-body #output {
+  user-select: text;
+  -webkit-user-select: text;
 }
 @media (max-width: 700px) {
-  .terminal > .quick-commands { padding: 9px 12px; gap: 5px; }
+  .terminal > .quick-commands { padding: 9px 14px; gap: 2px 12px; }
+  .quick-label { margin-right: 8px; }
 }
 @media (max-width: 420px) {
   .terminal > .menu-bar { gap: 10px; }
+  .terminal > .quick-commands button { font-size: 11px; }
 }

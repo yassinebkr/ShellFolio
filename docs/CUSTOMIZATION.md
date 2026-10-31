@@ -25,8 +25,7 @@ export const quickActions = Object.freeze([
 ]);
 ```
 
-The suggestions are rendered **under the terminal output**, remain in view
-when its history scrolls, and call the same interpreter as a typed command.
+The suggestions are rendered **under the terminal output** as a compact text-command strip, remain in view when its history scrolls, and call the same interpreter as a typed command.
 They are not placeholders or prewritten HTML output.
 
 ## 2. Add your predefined responses
@@ -88,7 +87,8 @@ Edit `launch-script.js` to change the progressive introduction. It
 contains declarative steps: `line`, `type` and `progress`. These
 are simulated portfolio operations, not actual hardware diagnostics.
 The browser renderer handles pacing, Esc to finish, Ctrl+C to interrupt,
-and reduced-motion accessibility.
+and reduced-motion accessibility. The last line should explicitly invite
+the visitor to type `help` or select a shortcut below the terminal.
 
 `startup.js` selects the default introduction. Use `?view=listing`
 to enter directly with the workspace listing. `?run=launch` is a
@@ -105,7 +105,8 @@ terminal implementation. Do not modify its SVG markup by hand.
 `tools/make_demo.py` runs commands through the production `engine.js` and
 renders their structured output.
 
-The preview follows the same visual conventions as the live window:
+The preview follows the same visual conventions as the live window, including
+the compact, unboxed text shortcut strip rather than individual card-like buttons:
 **unboxed XFCE menu labels**, non-interactive window chrome, and a consistent
 24px terminal row height. Prompts follow their actual output lines
 **without blank separators**; a silent command such as `cd` is followed

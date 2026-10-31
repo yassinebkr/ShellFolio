@@ -13,11 +13,88 @@ ShellFolio is a client-side, read-only terminal simulator presenting a curated e
 - `tests/engine.test.mjs`: deterministic unit tests for navigation, commands and completions
 - `.github/workflows/verify.yml`: CI checks for JavaScript, SVG reproducibility and static assets
 
+
+## Architecture diagrams
+
+### Browser runtime
+
+```mermaid
+flowchart TB
+    Visitor["Visitor: keyboard, shortcuts, selection"] --> UI["app.js — DOM controller"]
+    HTML["index.html + style.css — XFCE window and layout"] --> UI
+    Start["startup.js — initial scene"] --> UI
+    Config["portfolio.config.js — quick actions and preset responses"] --> UI
+    Config --> Engine["engine.js — read-only shell and virtual filesystem"]
+    UI -->|"execute(command)"| Engine
+    Engine -->|"structured output / timeline"| UI
+    Timeline["launch-script.js — scripted introduction steps"] --> Engine
+    UI --> Screen["DOM output + input + persistent shortcuts"]
+    Screen --> Visitor
+```
+
+The browser has no real shell, server-side interpreter or command execution
+privileges. The DOM renderer converts the interpreter's structured responses
+into text nodes and approved links. The profile SVG generator is a different
+project and is not part of this runtime.
+
+### Command execution and text selection
+
+```mermaid
+sequenceDiagram
+    actor Visitor
+    participant Input as Command input / shortcut
+    participant UI as app.js
+    participant Engine as engine.js
+    participant View as Terminal output
+
+    Visitor->>Input: Enter command or select shortcut
+    Input->>UI: submitCommand(command)
+    UI->>Engine: execute(command)
+    Engine-->>UI: structured lines, clear flag or timeline
+    alt Standard command
+        UI->>View: Append output as text nodes
+    else Scripted introduction
+        UI->>View: Hide active prompt
+        loop Each timeline step
+            UI->>View: Stream one line / update progress
+        end
+        UI->>View: Restore active prompt
+    else Clean / clear
+        UI->>View: Empty output buffer
+    end
+    Visitor->>View: Select output and copy with browser controls
+    Note over UI,View: No global click-to-focus, and no auto-scroll during selection
+```
+
+Selection is a native browser interaction. Do not restore focus automatically
+after a command or after the launch script: clicking the terminal's output
+must not collapse a highlighted passage. While a script is running, Ctrl+C
+copies an existing text selection; with no selection it interrupts the
+script.
+
+### README SVG build and verification
+
+```mermaid
+flowchart LR
+    Engine["engine.js"] --> Node["Node subprocess: replay example commands"]
+    Config["portfolio.config.js"] --> Node
+    Node --> Generator["tools/make_demo.py"]
+    Generator --> SVG["assets/demo.svg — animated preview"]
+    SVG --> README["Public README image"]
+    Generator --> CI["GitHub Actions regeneration check"]
+    SVG --> CI
+    CI -->|"exact match required"| Result["Verified static artifact"]
+```
+
+Quick-action names and terminal response rows are not copied into a second
+manual content source. The SVG is a non-interactive illustration, while the
+website exposes actual buttons with the same configured commands.
+
 ## Commands and interactions
 
 Commands include `help`, `ls -l`, `cd`, `pwd`, `cat`, `tree`, `skills`, `projects`, `inspect`, `history`, and `clear`. The `Tab` and `→` keys accept a unique inline completion; when candidates are ambiguous, `Tab` lists them. The up/down arrows navigate command history. Output uses text nodes and a curated link allowlist.
 
-The XFCE menu labels and window controls remain non-interactive visual chrome. The Run and Clean quick actions are interactive; Clean resets the entire visible terminal. The active prompt remains hidden throughout script playback and returns only after completion or interruption.
+The XFCE menu labels and window controls remain non-interactive visual chrome. The Run and Clean quick actions are interactive; Clean resets the entire visible terminal. The active prompt remains hidden throughout script playback and returns only after completion or interruption. The quick-action rail is a discreet strip of text commands, not a stack of boxed cards.
 
 ## Personalization
 
@@ -111,5 +188,6 @@ All status messages refer to the *virtual* portfolio model. There are no
 network fetches, real filesystem probes, or claims about hardware currently
 connected to the visitor. The user can interrupt with Ctrl+C, immediately
 finish the sequence with Escape, or enable `prefers-reduced-motion` to
-receive output without animation. During playback, interactive commands
-are temporarily disabled to avoid overlapping sessions.
+receive output without animation. During playback, another shortcut cancels the active script and starts a new
+command, avoiding overlapping sessions. Browser text selection and native
+copying must remain available throughout the session.

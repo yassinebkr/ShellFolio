@@ -85,31 +85,32 @@ def get_quick_actions() -> list[dict]:
 
 
 def render_quick_actions(actions: list[dict]) -> str:
-    """Render a static approximation of the persistent quick-action rail."""
+    """Mirror the site's restrained text shortcut strip, without fake buttons.
+
+    The visual labels originate in portfolio.config.js. In the README image
+    they are not clickable; they are actual buttons on the live web page.
+    """
     elements = [
         '<g id="quick-actions-preview">',
-        '<rect x="1" y="659" width="1078" height="60" fill="#0d1013"/>',
-        '<path d="M1 659H1079" stroke="#30343a"/>',
-        '<text x="26" y="694" fill="#929da9" '
+        '<rect x="1" y="659" width="1078" height="60" fill="#080909"/>',
+        '<path d="M1 659H1079" stroke="#282c30"/>',
+        '<text x="26" y="694" fill="#777f87" '
         'style="font-family:DejaVu Sans Mono,monospace;'
-        'font-size:11px;letter-spacing:1px">TRY</text>',
+        'font-size:11px">shortcuts</text>',
     ]
-    x = 66
-    for action in actions:
-        label = action["label"]
-        width = max(56, 18 + 9 * len(label))
+    x = 125.0
+    for index, action in enumerate(actions):
+        label = action["label"].lower()
+        width = 7.2 * len(label)
         if x + width > 1060:
             raise ValueError("Shortcut labels do not fit the SVG preview")
+        color = "#bedcc2" if index == 0 else "#a0abb3"
         elements.append(
-            f'<rect x="{x}" y="677" width="{width}" height="28" rx="3" '
-            'fill="#1a2025" stroke="#434b54" stroke-width="1"/>'
-        )
-        elements.append(
-            f'<text x="{x + 10}" y="696" fill="#bdcbd8" '
+            f'<text x="{x:.1f}" y="694" fill="{color}" '
             'style="font-family:DejaVu Sans Mono,monospace;'
             f'font-size:12px">{svg_escape(label)}</text>'
         )
-        x += width + 8
+        x += width + 17
     elements.append("</g>")
     return "\n".join(elements)
 

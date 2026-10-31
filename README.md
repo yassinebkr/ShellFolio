@@ -18,7 +18,7 @@ The simulation presents curated engineering data; it executes entirely in the br
 
 ## Customization
 
-To adapt **Run**, **Clean**, other suggested commands and predefined responses, edit `portfolio.config.js`. XFCE menu labels remain visual-only. The [customization guide](docs/CUSTOMIZATION.md) walks through the setup and validation.
+To adapt **Run**, **Clean**, other suggested commands and predefined responses, edit `portfolio.config.js`. The shortcut rail uses understated text links rather than boxed badges; XFCE menu labels remain visual-only. The [customization guide](docs/CUSTOMIZATION.md) walks through the setup and validation.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ npm run demo
 
 The deployable site is at the repository root (`index.html`, `style.css`, `app.js`, `engine.js`, `assets/`). The unit tests, demonstration generator, CI configuration, and documentation live alongside that site **in this repository**. GitHub Pages publishes `main` / `(root)`.
 
-Read [Development & architecture](docs/DEVELOPMENT.md) for the design and testing approach.
+Read [Development & architecture](docs/DEVELOPMENT.md) for system and command-flow diagrams, the SVG build pipeline, and testing. Terminal output supports normal browser text selection and copying.
 
 ## Related project
 
