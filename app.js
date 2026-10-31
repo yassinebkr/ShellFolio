@@ -8,6 +8,7 @@ const $ = id => document.getElementById(id);
 const output = $('output');
 const form = $('prompt-form');
 const input = $('command-input');
+const terminalCursor = $('terminal-cursor');
 const pwdLabel = $('pwd-label');
 const windowTitle = $('window-title');
 const body = $('terminal-body');
@@ -227,6 +228,18 @@ if (initialScene(window.location.search) === 'launch') {
   displayCommand('ls -l ~/workspace', '~', listing.lines);
 }
 
+/**
+ * Match the solid blinking SVG cursor without replacing the actual input.
+ * Preserve native selection, editing, scrolling, and keyboard completion.
+ */
+function updateTerminalCursor() {
+  const focused = document.activeElement === input;
+  const column = focused ? (input.selectionStart ?? input.value.length) : input.value.length;
+  terminalCursor.hidden = focused && input.selectionStart !== input.selectionEnd;
+  terminalCursor.style.left = `calc(${column}ch - ${input.scrollLeft}px)`;
+  terminalCursor.textContent = input.value.charAt(column) || '\u00a0';
+}
+
 function refreshCompletion(showMatches = false) {
   const typed = input.value;
   // Completion applies to the end of the command line, like a regular shell.
@@ -238,6 +251,7 @@ function refreshCompletion(showMatches = false) {
   ghostSuffix.textContent = suffix;
   completionOptions.hidden = !(showMatches && suggestion.matches.length > 1);
   completionOptions.textContent = completionOptions.hidden ? '' : suggestion.matches.slice(0, 8).join('    ');
+  updateTerminalCursor();
 }
 
 function submitCommand(value = input.value, { typeCommand = false, existingEntry = null } = {}) {
@@ -284,6 +298,12 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
 form.addEventListener('submit', e => { e.preventDefault(); submitCommand(); });
 input.addEventListener('input', () => refreshCompletion());
 input.addEventListener('click', () => refreshCompletion());
+input.addEventListener('focus', updateTerminalCursor);
+input.addEventListener('blur', updateTerminalCursor);
+input.addEventListener('scroll', updateTerminalCursor);
+document.addEventListener('selectionchange', () => {
+  if (document.activeElement === input) updateTerminalCursor();
+});
 input.addEventListener('keyup', event => {
   if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) refreshCompletion();
 });

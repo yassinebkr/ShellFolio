@@ -8,7 +8,9 @@ The [live example](https://yassinebkr.github.io/ShellFolio/) presents my
 electronics, embedded Linux and software projects. Fork this repository to
 present your own work.
 
-**[Open the interactive demo](https://yassinebkr.github.io/ShellFolio/)**
+**The animated SVG below is a preview, not an interactive terminal. Click it to try the live demo.**
+
+[![Animated ShellFolio terminal showing virtual commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
 ## Explore
 

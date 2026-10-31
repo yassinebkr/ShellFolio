@@ -231,3 +231,21 @@ test('terminal footer offers a configurable external source link', () => {
   assert.match(css, /\.source-repo-link/);
   assert.match(html, /style\.css\?v=11/);
 });
+
+test('web cursor matches the animated SVG block while preserving native editing', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  assert.match(html, /id="terminal-cursor" class="terminal-cursor" aria-hidden="true"/);
+  assert.match(css, /#command-input \{ caret-color: transparent; \}/);
+  assert.match(css, /\.terminal-cursor \{/);
+  assert.match(css, /width: 1ch;/);
+  assert.match(css, /pointer-events: none;/);
+  assert.match(css, /@keyframes terminal-cursor-blink/);
+  assert.match(app, /function updateTerminalCursor\(\)/);
+  assert.match(app, /input\.selectionStart/);
+  assert.match(app, /input\.scrollLeft/);
+  assert.match(app, /input\.addEventListener\('scroll', updateTerminalCursor\)/);
+  assert.match(app, /document\.addEventListener\('selectionchange'/);
+  assert.match(html, /style\.css\?v=12/);
+});

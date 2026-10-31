@@ -7,8 +7,8 @@
   <meta name="description" content="ShellFolio — explore electronics, embedded systems, and engineering projects in a Debian/XFCE-inspired virtual terminal.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ShellFolio — Terminal</title>
-  <link rel="stylesheet" href="./style.css?v=11">
-  <script type="module" src="./app.js?v=11"></script>
+  <link rel="stylesheet" href="./style.css?v=12">
+  <script type="module" src="./app.js?v=12"></script>
 </head>
 <body>
   <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
@@ -52,6 +52,7 @@
         <div class="input-wrap">
           <div class="completion-ghost" aria-hidden="true"><span id="ghost-prefix"></span><span id="ghost-suffix"></span></div>
           <input id="command-input" name="command" type="text" aria-label="Shell command" autofocus autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="240" aria-describedby="shell-help">
+          <span id="terminal-cursor" class="terminal-cursor" aria-hidden="true"></span>
         </div>
       </form>
       <div id="completion-options" class="completion-options" aria-live="polite" hidden></div>
