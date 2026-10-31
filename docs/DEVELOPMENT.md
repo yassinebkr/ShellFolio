@@ -8,7 +8,7 @@ ShellFolio is a client-side, read-only terminal simulator presenting a curated e
 - `style.css`: window chrome, typography, layout and responsive breakpoints
 - `app.js`: input events, command history, output rendering, completion hints
 - `engine.js`: parser, virtual filesystem, commands and completion candidates
-- `assets/demo.svg`: animated command replay for this repository's README
+- `assets/terminal-demo.svg`: animated command replay for this repository's README
 - `tools/make_demo.py`: Python demonstration generator invoking the **same** Node.js command interpreter as the browser
 - `tests/engine.test.mjs`: deterministic unit tests for navigation, commands and completions
 - `.github/workflows/verify.yml`: CI checks for JavaScript, SVG reproducibility and static assets
@@ -68,7 +68,7 @@ flowchart LR
     Engine["engine.js"] --> Node["Node subprocess: replay example commands"]
     Config["portfolio.config.js"] --> Node
     Node --> Generator["tools/make_demo.py"]
-    Generator --> SVG["assets/demo.svg — animated preview"]
+    Generator --> SVG["assets/terminal-demo.svg — animated preview"]
     SVG --> README["Public README image"]
     Generator --> CI["GitHub Actions regeneration check"]
     SVG --> CI
@@ -129,7 +129,7 @@ The generator must preserve these display conventions:
   `Tabs`, `Help`) are plain text on the gray menu bar, **not outlined
   buttons**. The application and SVG use the same non-interactive chrome.
 - Prompt placement is calculated from the **actual number of lines returned
-  by the interpreter**: one 24px text row for the command itself, then one
+  by the interpreter**: one 21px text row for the command itself, then one
   for each output line. The next command starts immediately below the last
   output line. Silent commands such as `cd` add no empty separator row.
 - Only **explicit empty lines in the interpreter output** count as blank
@@ -140,15 +140,11 @@ The generator must preserve these display conventions:
   visual-only in the embedded README image. The live HTML buttons are
   interactive.
 
-The SVG currently uses a fixed **1080 × 720** canvas with a bottom shortcut
-rail. If a personalized transcript becomes longer, inspect the final prompt
-and shortcut rail for overlap and adjust the canvas/rail positions in the
-generator accordingly. Vertical prompt spacing is content-derived; canvas
-height and shortcut positioning are not automatically resized.
+The SVG now calculates its **height and shortcut rail position from the real transcript**. A 21px row height matches the site more closely, with no artificial blank lines between commands. The animation plays **once**, retains the completed transcript, and never rewinds typing from right to left. Only the cursor continues blinking. The shortcut strip is always inside the SVG viewport.
 
 Regenerate the asset using `npm run demo` and inspect the updated README
 image before committing. GitHub Actions regenerates the SVG and checks for an
-exact match with the tracked `assets/demo.svg`.
+exact match with the tracked `assets/terminal-demo.svg`.
 
 
 ## Repository separation

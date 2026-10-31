@@ -27,13 +27,13 @@ jobs:
       - name: Reproduce the animated SVG demonstration
         run: |
           python3 tools/make_demo.py
-          git diff --exit-code -- assets/demo.svg
+          git diff --exit-code -- assets/terminal-demo.svg
       - name: Validate static asset structure
         run: |
           python3 - <<'PY_CHECK'
           from pathlib import Path
           from xml.etree import ElementTree as ET
-          ET.parse('assets/demo.svg')
+          ET.parse('assets/terminal-demo.svg')
           ET.parse('assets/debian.svg')
           for name in ('index.html', 'style.css', 'app.js', 'engine.js', 'launch-script.js', 'startup.js', 'portfolio.config.js', 'docs/CUSTOMIZATION.md'):
               assert Path(name).is_file(), name

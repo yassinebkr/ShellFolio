@@ -4,9 +4,9 @@ An interactive, Debian/XFCE-style terminal portfolio running in the browser.
 
 [**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/) · [**Read the launch script**](launch-script.js)
 
-[![ShellFolio virtual terminal demonstration](assets/demo.svg)](https://yassinebkr.github.io/ShellFolio/)
+[![ShellFolio virtual terminal demonstration](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
-The animation also shows the **predefined visitor shortcuts** from the site. The SVG is a visual preview; the shortcuts become clickable on the live page. It replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS. The XFCE menu labels are plain text, without button borders. Each successive shell prompt follows the previous command's output on the next terminal row, without an extra blank line.
+The animation plays once and holds the complete terminal output. It also shows the **predefined visitor shortcuts** from the site. The SVG is a visual preview; the shortcuts become clickable on the live page. It replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS. The XFCE menu labels are plain text, without button borders. Each successive shell prompt follows the previous command's output on the next terminal row, without an extra blank line.
 
 ## Features
 

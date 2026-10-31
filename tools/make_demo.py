@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "engine.js"
-OUT = ROOT / "assets/demo.svg"
+OUT = ROOT / "assets/terminal-demo.svg"
 COMMANDS = ["ls -l ~/workspace", "cd workspace/projects", "ls", "inspect lora"]
 PROMPT = "yassine@debian"
 FONT_SIZE = 14
@@ -84,7 +84,7 @@ def get_quick_actions() -> list[dict]:
     return actions
 
 
-def render_quick_actions(actions: list[dict]) -> str:
+def render_quick_actions(actions: list[dict], top: int) -> str:
     """Mirror the site's restrained text shortcut strip, without fake buttons.
 
     The visual labels originate in portfolio.config.js. In the README image
@@ -92,9 +92,9 @@ def render_quick_actions(actions: list[dict]) -> str:
     """
     elements = [
         '<g id="quick-actions-preview">',
-        '<rect x="1" y="659" width="1078" height="60" fill="#080909"/>',
-        '<path d="M1 659H1079" stroke="#282c30"/>',
-        '<text x="26" y="694" fill="#777f87" '
+        f'<rect x="1" y="{top}" width="1078" height="56" fill="#080909"/>',
+        f'<path d="M1 {top}H1079" stroke="#282c30"/>',
+        f'<text x="26" y="{top + 34}" fill="#777f87" '
         'style="font-family:DejaVu Sans Mono,monospace;'
         'font-size:11px">shortcuts</text>',
     ]
@@ -106,7 +106,7 @@ def render_quick_actions(actions: list[dict]) -> str:
             raise ValueError("Shortcut labels do not fit the SVG preview")
         color = "#bedcc2" if index == 0 else "#a0abb3"
         elements.append(
-            f'<text x="{x:.1f}" y="694" fill="{color}" '
+            f'<text x="{x:.1f}" y="{top + 34}" fill="{color}" '
             'style="font-family:DejaVu Sans Mono,monospace;'
             f'font-size:12px">{svg_escape(label)}</text>'
         )
@@ -139,8 +139,8 @@ def prompt_svg(command: str, location: str, y: int, index: int, start: int, stop
     first = start / DURATION * 100
     second = stop / DURATION * 100
     # The clipping rectangle makes the typed command grow in monospace cells.
-    css.append(f'@keyframes typing{index} {{ 0%, {first:.2f}% {{ width:0; }} {second:.2f}%, 98% {{ width:{width:.2f}px; }} 100% {{width:0;}} }}')
-    css.append(f'.typing{index} {{animation:typing{index} {DURATION}s steps({len(command)},end) infinite;}}')
+    css.append(f'@keyframes typing{index} {{ 0%, {first:.2f}% {{ width:0; }} {second:.2f}%, 100% {{ width:{width:.2f}px; }} }}')
+    css.append(f'.typing{index} {{animation:typing{index} {DURATION}s steps({len(command)},end) 1 both;}}')
     prefix = (
         f'<text x="{BODY_X}" y="{y}"><tspan fill="#65ed74">{PROMPT}</tspan>'
         f'<tspan fill="#8fbaff">:{svg_escape(location)}</tspan><tspan fill="#dadada">$ </tspan></text>'
@@ -153,10 +153,10 @@ def prompt_svg(command: str, location: str, y: int, index: int, start: int, stop
 
 
 def visibility_animation(name: str, seconds: float) -> None:
-    """A discrete loop restores the initial empty terminal after each replay."""
+    """Reveal the transcript once, retaining the final output without reverse wiping."""
     pc = seconds / DURATION * 100
-    css.append(f'@keyframes {name} {{0%, {max(0,pc-0.1):.2f}% {{opacity:0;}} {pc:.2f}%, 98% {{opacity:1;}} 100% {{opacity:0;}}}}')
-    css.append(f'.{name} {{opacity:0;animation:{name} {DURATION}s steps(1,end) infinite;}}')
+    css.append(f'@keyframes {name} {{0%, {max(0,pc-0.1):.2f}% {{opacity:0;}} {pc:.2f}%, 100% {{opacity:1;}}}}')
+    css.append(f'.{name} {{opacity:0;animation:{name} {DURATION}s steps(1,end) 1 both;}}')
 
 
 transcript = get_transcript()
@@ -166,23 +166,28 @@ css: list[str] = [
     '.cursor{animation:cursorBlink 1.1s steps(1,end) infinite}',
 ]
 visuals: list[str] = []
-# Timings are measured in seconds from the start of each 25-second playback.
-sequences = [
-    # command baseline, start typing, finish typing, reveal output
-    (101, 0.4, 2.0, 2.2),
-    (313, 6.0, 7.3, 7.4),
-    (347, 8.4, 9.3, 9.4),
-    (420, 12.1, 13.7, 13.9),
+# Each animation plays only once; the final terminal state remains visible.
+# 21px approximates the actual 14px / 1.52 line-height of XFCE chrome.
+# A silent command consumes only its prompt row; no empty separator is added.
+timings = [
+    (0.4, 2.0, 2.2),
+    (6.0, 7.3, 7.4),
+    (8.4, 9.3, 9.4),
+    (12.1, 13.7, 13.9),
 ]
-# Derive each prompt from the real length of the previous command's output.
-# A silent command like cd consumes only its own row, without added blanks.
-LINE_HEIGHT = 24
-next_baseline = sequences[0][0]
-for index, entry in enumerate(transcript):
-    _, start, stop, reveal = sequences[index]
-    sequences[index] = (next_baseline, start, stop, reveal)
+LINE_HEIGHT = 21
+next_baseline = 101
+sequences = []
+row_baselines = []
+for entry, (start, stop, reveal) in zip(transcript, timings):
+    sequences.append((next_baseline, start, stop, reveal))
+    row_baselines.append(next_baseline + LINE_HEIGHT)
     next_baseline += (1 + len(entry["rows"])) * LINE_HEIGHT
-row_baselines = [baseline + LINE_HEIGHT for baseline, _, _, _ in sequences]
+
+# Both the bottom rail and SVG viewport follow the final prompt, eliminating
+# the empty expanse that previously hid the shortcut links in GitHub's preview.
+rail_top = next_baseline + 29
+canvas_height = rail_top + 56
 for i, (entry, (baseline, start, end, reveal)) in enumerate(zip(transcript, sequences)):
     class_name = f'sequence{i}'
     visibility_animation(class_name, start)
@@ -190,15 +195,16 @@ for i, (entry, (baseline, start, end, reveal)) in enumerate(zip(transcript, sequ
     if entry["rows"]:
         name = f'result{i}'
         visibility_animation(name, reveal)
-        lines = "".join(line_svg(row_baselines[i] + offset * 24, line["parts"]) for offset, line in enumerate(entry["rows"]))
+        lines = "".join(line_svg(row_baselines[i] + offset * LINE_HEIGHT, line["parts"]) for offset, line in enumerate(entry["rows"]))
         visuals.append(f'<g class="{name}">{lines}</g>')
 
 visibility_animation("lastPrompt", 18.0)
-last_x = BODY_X + len('yassine@debian:~/workspace/projects$ ') * CHAR_W
+last_location = transcript[-1]["location"]
+last_x = BODY_X + len(f"{PROMPT}:{last_location}$ ") * CHAR_W
 visuals.append(
     '<g class="lastPrompt">'
     f'<text x="{BODY_X}" y="{next_baseline}"><tspan fill="#65ed74">{PROMPT}</tspan>'
-    '<tspan fill="#8fbaff">:~/workspace/projects</tspan>'
+    f'<tspan fill="#8fbaff">:{svg_escape(last_location)}</tspan>'
     '<tspan fill="#dadada">$ </tspan></text>'
     f'<rect x="{last_x:.2f}" y="{next_baseline - 15}" width="9" height="17" fill="#dedede" class="cursor"/>'
     '</g>'
@@ -206,11 +212,11 @@ visuals.append(
 
 # Reduced-motion users can inspect the complete command transcript statically.
 css.append('@media(prefers-reduced-motion:reduce){.sequence0,.sequence1,.sequence2,.sequence3,.result0,.result2,.result3,.lastPrompt{opacity:1;animation:none}.typing0,.typing1,.typing2,.typing3{animation:none;width:999px}.cursor{animation:none}}')
-svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720" role="img" aria-labelledby="title description">
+svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="{canvas_height}" viewBox="0 0 1080 {canvas_height}" role="img" aria-labelledby="title description">
 <title id="title">ShellFolio — interactive terminal demonstration</title>
 <desc id="description">Animated replay generated from the ShellFolio virtual command engine: list directories, navigate to projects, list files, and inspect the validated LoRa field test.</desc>
 <style>{''.join(css)}</style>
-<rect x="0.5" y="0.5" width="1079" height="719" rx="5" fill="#050505" stroke="#575757"/>
+<rect x="0.5" y="0.5" width="1079" height="{canvas_height - 1}" rx="5" fill="#050505" stroke="#575757"/>
 <path d="M5 1H1075Q1079 1 1079 5V37H1V5Q1 1 5 1Z" fill="#353535"/>
 <rect x="14" y="11" width="18" height="17" rx="2" fill="#202428" stroke="#b2b9c1"/>
 <path d="M19 15L23 19L19 23M25 23H29" stroke="#f0f0f0" stroke-width="1.3" fill="none"/>
@@ -226,7 +232,7 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" view
 <text x="276" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">Help</text>
 <path d="M1 66H1079" stroke="#4a4a4a"/>
 {''.join(visuals)}
-{render_quick_actions(get_quick_actions())}
+{render_quick_actions(get_quick_actions(), rail_top)}
 </svg>'''
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(svg, encoding="utf-8")

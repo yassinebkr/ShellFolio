@@ -184,7 +184,7 @@ test('copyable output never triggers generic focus stealing', () => {
 
 test('README demo generator reads shortcut configuration, not a second list', () => {
   const gen = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
-  const svg = readFileSync(new URL('../assets/demo.svg', import.meta.url), 'utf8');
+  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
   assert.match(gen, /import \{ quickActions \} from '\.\/portfolio\.config\.js'/);
   assert.match(svg, /id="quick-actions-preview"/);
   assert.match(svg, />shortcuts<\/text>/);
@@ -224,3 +224,21 @@ test('architecture diagrams use compact Mermaid flowcharts', () => {
   assert.match(doc, /Pause 280 ms/);
 });
 
+
+test('README replay keeps completed lines visible with no rewind or hidden shortcuts', () => {
+  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
+  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
+  const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+  assert.match(readme, /assets\/terminal-demo\.svg/);
+  assert.match(svg, /id="quick-actions-preview"/);
+  assert.doesNotMatch(svg, /100% \{opacity:0;\}/);
+  assert.doesNotMatch(svg, /100% \{width:0;\}/);
+  assert.doesNotMatch(svg, /\.typing\d+ \{animation:[^}]*infinite/);
+  const canvasHeight = Number(svg.match(/viewBox="0 0 1080 (\d+)"/)?.[1]);
+  const last = Number(svg.match(/<g class="lastPrompt"><text x="26" y="(\d+)"/)?.[1]);
+  const rail = Number(svg.match(/<g id="quick-actions-preview">\n<rect x="1" y="(\d+)"/)?.[1]);
+  assert.equal(rail, last + 29);
+  assert.equal(canvasHeight, rail + 56);
+  assert.match(generator, /LINE_HEIGHT = 21/);
+  assert.match(generator, /render_quick_actions\(get_quick_actions\(\), rail_top\)/);
+});

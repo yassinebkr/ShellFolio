@@ -116,7 +116,7 @@ Use `style.css` for window proportions, fonts, dropdowns and the
 persistent visitor-shortcut rail. The visual rendering is intentionally
 separate from content configuration.
 
-The README's `assets/demo.svg` is a generated **visual replay**, not a second
+The README's `assets/terminal-demo.svg` is a generated **visual replay**, not a second
 terminal implementation. Do not modify its SVG markup by hand.
 `tools/make_demo.py` runs commands through the production `engine.js` and
 renders their structured output.
@@ -124,7 +124,7 @@ renders their structured output.
 The preview follows the same visual conventions as the live window, including
 the compact, unboxed text shortcut strip rather than individual card-like buttons:
 **unboxed XFCE menu labels**, non-interactive window chrome, and a consistent
-24px terminal row height. Prompts follow their actual output lines
+21px terminal row height. Prompts follow their actual output lines
 **without blank separators**; a silent command such as `cd` is followed
 immediately by the next prompt. An explicitly empty output line is preserved
 if the command genuinely emits one.
@@ -134,12 +134,7 @@ the bottom rail synchronized with the website. GitHub displays embedded SVGs
 as images: the shortcut buttons shown in the README are only illustrations,
 while the website's shortcuts execute virtual commands.
 
-The SVG currently has a fixed 1080 × 720 viewBox and a bottom shortcut rail.
-When you substantially change the demo commands or their output lengths,
-check that the final idle prompt does not overlap the rail. Adjust the
-canvas size and footer positions in `tools/make_demo.py` if needed, then
-regenerate the asset. The generator automatically advances **prompt
-baselines**, but does not automatically size the entire SVG viewport.
+The SVG keeps a fixed **1080px width** and derives its height and shortcut position from the number of actual output rows. The animation plays once and stays on the completed frame, with only its cursor blinking. Regenerate with `npm run demo` after altering commands or the shortcut configuration.
 
 The related Python SVG generator for the GitHub profile README lives in
 a separate repository: https://github.com/yassinebkr/test
@@ -155,7 +150,7 @@ node --check engine.js
 node --check portfolio.config.js
 npm run demo
 git diff --check
-git diff -- assets/demo.svg
+git diff -- assets/terminal-demo.svg
 python3 -m http.server 8000
 ```
 
