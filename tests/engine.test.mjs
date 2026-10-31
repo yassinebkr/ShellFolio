@@ -121,18 +121,34 @@ test('profile link resumes after ls; direct visits retain the launch, listing ov
   assert.equal(initialScene('?view=unknown'), 'launch');
 });
 
-test('profile handoff paints ls once before typing and animating launch', () => {
+test('profile handoff starts at ls without even a transient neofetch frame', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(html, /<span>neofetch<\/span>/);
   assert.match(html, /CinemaPi5 \/ LoRa \/ BigBrain/);
-  assert.match(app, /const scene = initialScene\(window\.location\.search\);/);
-  assert.match(app, /if \(scene !== 'launch'\) \{[\s\S]*?displayCommand\('ls -l ~\/workspace', '~', listing\.lines\);\s*\}/);
-  assert.match(app, /if \(scene !== 'listing'\) \{[\s\S]*?submitCommand\('\.\/launch-interactive\.sh', \{ typeCommand: true, focusWhenReady: true \}\);\s*\}/);
+  assert.match(html, /id="output"[^>]*hidden>/);
+  const start = app.indexOf('renderQuickActions();');
+  const end = app.indexOf('function updateTerminalCursor()', start);
+  const startup = app.slice(start, end);
+  assert.ok(start >= 0 && end > start, 'startup block must exist');
+  assert.match(startup, /const scene = initialScene\(window\.location\.search\);/);
+  assert.match(startup, /if \(scene === 'profile'\) \{\s*output\.replaceChildren\(\);\s*\}/);
+  assert.match(startup, /if \(scene !== 'launch'\) \{[\s\S]*?displayCommand\('ls -l ~\/workspace', '~', listing\.lines\);\s*\}/);
+  assert.match(startup, /output\.hidden = false;/);
+  assert.match(startup, /if \(scene !== 'listing'\) \{[\s\S]*?submitCommand\('\.\/launch-interactive\.sh', \{ typeCommand: true, focusWhenReady: true \}\);\s*\}/);
+  assert.ok(
+    startup.indexOf('output.replaceChildren();') < startup.indexOf("displayCommand('ls -l ~/workspace'"),
+    'neofetch must be removed before ls is displayed'
+  );
+  assert.ok(
+    startup.indexOf("displayCommand('ls -l ~/workspace'") < startup.indexOf("submitCommand('./launch-interactive.sh'"),
+    'ls must be visible before the script starts typing'
+  );
+  assert.match(app, /initialSystemProfile = output\.querySelector\('\.sysfetch'\)\?\.cloneNode\(true\)/);
   assert.match(app, /await sleep\(190, signal\);/);
   assert.match(app, /for \(const character of typedCommand\)/);
   assert.match(app, /restorePrompt\(\{ focus: shouldFocus \}\)/);
-  assert.match(html, /app\.js\?v=15/);
+  assert.match(html, /app\.js\?v=16/);
 });
 
 test('profile SVG ls and virtual shell workspace listing agree on dates and order', () => {
@@ -417,7 +433,7 @@ test('shortcut completion always restores the editable prompt and keyboard focus
   assert.match(app, /restorePrompt\(\{ focus: focusWhenReady \}\)/);
   assert.match(app, /restorePrompt\(\{ focus: current\.focusWhenDone \}\)/);
   assert.match(app, /run\.startedByShortcut/);
-  assert.match(html, /app\.js\?v=15/);
+  assert.match(html, /app\.js\?v=16/);
 });
 test('shortcut focus restoration respects another action and text selection', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
