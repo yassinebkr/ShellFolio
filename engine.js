@@ -7,7 +7,7 @@
  */
 
 import { LAUNCH_STEPS, resolvedLaunchLines } from './launch-script.js';
-import { presetResponses } from './portfolio.config.js';
+import { presetResponses } from './portfolio.config.js?v=14';
 
 const home = '/home/yassine';
 const root = {
@@ -59,6 +59,18 @@ const line = (...parts) => ({ parts: parts.map(part => typeof part === 'string' 
 const plain = text => line(segment(text));
 const lines = (...xs) => xs.map(plain);
 const err = text => [line(segment(text, 'pink'))];
+
+/** Static preset lines may include an HTTPS or email link; unknown schemes stay plain text. */
+function presetLine(entry) {
+  if (typeof entry === 'string') return plain(entry);
+  const text = typeof entry?.text === 'string' ? entry.text : '';
+  const href = entry?.href;
+  if (typeof href === 'string' &&
+      (/^https:\/\/[^\s]+$/i.test(href) || /^mailto:[^\s@]+@[^\s@]+$/i.test(href))) {
+    return line({ text, style: 'blue', href });
+  }
+  return plain(text);
+}
 
 /** Convert an absolute or relative virtual path into a canonical path. */
 function resolvePath(cwd, path = '.') {
@@ -136,7 +148,7 @@ function tokenize(input) {
 export class TerminalEngine {
   constructor() { this.cwd = home; this.history = []; }
   get location() { return cwdLabel(this.cwd); }
-  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'clean', 'reset', 'exit', 'run', './launch-interactive.sh', ...Object.keys(presetResponses)]; }
+  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'reset', 'exit', 'run', './launch-interactive.sh', ...Object.keys(presetResponses)]; }
 
   /** Find candidates for live ghost text and shell-style Tab completion. */
   suggest(value) {
@@ -177,7 +189,7 @@ export class TerminalEngine {
     if (['clear', 'clean', 'reset'].includes(command)) return { lines: [], clear: true, cwd: this.cwd };
     if (Object.hasOwn(presetResponses, command)) {
       if (args.length) return { lines: err(command + ': unexpected arguments'), cwd: this.cwd };
-      return { lines: presetResponses[command].lines.map(plain), cwd: this.cwd };
+      return { lines: presetResponses[command].lines.map(presetLine), cwd: this.cwd };
     }
     if (command === 'pwd') return { lines: lines(this.cwd), cwd: this.cwd };
     if (command === 'whoami') return { lines: lines('yassine'), cwd: this.cwd };
@@ -209,7 +221,7 @@ export class TerminalEngine {
         cwd: this.cwd
       };
     }
-    if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  run / ./launch-interactive.sh  Replay the introduction', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clean / clear / reset  Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
+    if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  run / ./launch-interactive.sh  Replay the introduction', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  contact               GitHub and email', '  history               Show executed commands', '  clear / reset          Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
     if (command === 'about') return { lines: [line(segment('YASSINE / ELECTRONICS & EMBEDDED SYSTEMS', 'cyan bold')), ...lines('Engineering across electronics, embedded Linux, software and digital fabrication.', 'Selected evidence: 45 km LoRa telemetry link and Raspberry Pi 5 cinema camera.', 'Approach: Design → Build → Test → Measure → Iterate.')], cwd: this.cwd };
     if (command === 'skills') return { lines: [line(segment('ENGINEERING DISCIPLINES', 'cyan bold')), ...groups.filter(x => x !== 'projects').map(name => line(segment(name.padEnd(14) + root[name].about, 'blue'))), plain('Tip: cd workspace/embedded && cat README.md')], cwd: this.cwd };
     if (command === 'projects') return { lines: [line(segment('PROJECTS / ENGINEERING EVIDENCE', 'cyan bold')), ...Object.entries(root.projects.children).map(([name, content]) => line(segment(name.padEnd(15), 'blue'), segment(content[1]))), plain('Tip: inspect cinemapi5   or   inspect lora')], cwd: this.cwd };
