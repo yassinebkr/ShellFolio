@@ -7,6 +7,7 @@
  */
 
 import { LAUNCH_STEPS, resolvedLaunchLines } from './launch-script.js';
+import { presetResponses } from './portfolio.config.js';
 
 const home = '/home/yassine';
 const root = {
@@ -135,7 +136,7 @@ function tokenize(input) {
 export class TerminalEngine {
   constructor() { this.cwd = home; this.history = []; }
   get location() { return cwdLabel(this.cwd); }
-  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'reset', 'exit', './launch-interactive.sh']; }
+  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'reset', 'exit', './launch-interactive.sh', ...Object.keys(presetResponses)]; }
 
   /** Find candidates for live ghost text and shell-style Tab completion. */
   suggest(value) {
@@ -174,6 +175,10 @@ export class TerminalEngine {
     const [command, ...args] = parsed.tokens;
     const value = args.join(' ');
     if (['clear', 'reset'].includes(command)) return { lines: [], clear: true, cwd: this.cwd };
+    if (Object.hasOwn(presetResponses, command)) {
+      if (args.length) return { lines: err(command + ': unexpected arguments'), cwd: this.cwd };
+      return { lines: presetResponses[command].lines.map(plain), cwd: this.cwd };
+    }
     if (command === 'pwd') return { lines: lines(this.cwd), cwd: this.cwd };
     if (command === 'whoami') return { lines: lines('yassine'), cwd: this.cwd };
     if (command === 'history') return { lines: this.history.slice(-30).map((cmd, i) => plain(`${String(Math.max(1, this.history.length - 29) + i).padStart(3)}  ${cmd}`)), cwd: this.cwd };

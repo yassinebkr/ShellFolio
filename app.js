@@ -1,6 +1,7 @@
 /** Browser controller for ShellFolio's read-only terminal simulator. */
 import { TerminalEngine } from './engine.js';
 import { initialScene } from './startup.js';
+import { quickActions, menuGroups } from './portfolio.config.js';
 
 const engine = new TerminalEngine();
 const $ = id => document.getElementById(id);
@@ -62,7 +63,8 @@ async function playLaunch(entry, timeline, typedCommand = '') {
   // execution output begins. Replays invoked by the user show it immediately.
   if (typedCommand && !commandNode) throw new Error('Shell prompt is missing');
   input.readOnly = true;
-  document.querySelectorAll('[data-command]').forEach(button => { button.disabled = true; });
+  // Quick actions remain available: selecting one finishes this introduction
+  // and immediately runs the chosen read-only command.
   const quickPace = () => reducedMotion.matches;
   let currentRow = null;
   let stepIndex = -1;
@@ -138,7 +140,7 @@ async function playLaunch(entry, timeline, typedCommand = '') {
     if (activeLaunch === run) {
       activeLaunch = null;
       input.readOnly = false;
-      document.querySelectorAll('[data-command]').forEach(button => { button.disabled = false; });
+      // The persistent quick-action rail remains interactive throughout.
       input.focus({ preventScroll: true });
       refreshCompletion();
       scrollToBottom();
@@ -201,6 +203,8 @@ function displayCommand(command, location, lines) {
  * An explicit ?view=listing remains available to inspect the original
  * directory listing without initiating the guided introduction.
  */
+renderQuickActions();
+renderMenus();
 if (initialScene(window.location.search) === 'launch') {
   submitCommand('./launch-interactive.sh', { typeCommand: true });
 } else {
@@ -223,7 +227,10 @@ function refreshCompletion(showMatches = false) {
 
 function submitCommand(value = input.value, { typeCommand = false } = {}) {
   if (activeLaunch) {
-    cancelLaunch('interrupt');
+    // Allow a visitor to choose a shortcut instead of watching the full intro.
+    // The pending animation settles in a microtask before the next command.
+    cancelLaunch('skip');
+    window.setTimeout(() => submitCommand(value, { typeCommand }), 0);
     return;
   }
   const raw = String(value).trim();
@@ -305,9 +312,116 @@ input.addEventListener('keydown', event => {
     submitCommand('clear');
   }
 });
-document.querySelectorAll('[data-command]').forEach(button => {
-  button.addEventListener('click', () => submitCommand(button.dataset.command));
-});
+/**
+ * Build the always-visible visitor shortcuts from the public configuration.
+ * All buttons share the same command handler as a manually entered command.
+ */
+function renderQuickActions() {
+  const rail = $('quick-commands');
+  rail.replaceChildren();
+  const label = document.createElement('span');
+  label.className = 'quick-label';
+  label.textContent = 'TRY';
+  rail.appendChild(label);
+  for (const shortcut of quickActions) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.command = shortcut.command;
+    button.textContent = shortcut.label;
+    button.title = shortcut.command;
+    button.addEventListener('click', () => submitCommand(shortcut.command));
+    rail.appendChild(button);
+  }
+}
+
+/** Convert the real clipboard success/failure into a visible terminal line. */
+function statusLine(message, style = 'muted') {
+  const row = document.createElement('div');
+  row.className = 'line';
+  const text = document.createElement('span');
+  text.className = style;
+  text.textContent = message;
+  row.appendChild(text);
+  output.appendChild(row);
+  scrollToBottom();
+}
+
+function runMenuAction(id) {
+  const shellActions = {
+    workspace: 'ls -l ~/workspace',
+    intro: './launch-interactive.sh',
+    clear: 'clear',
+    help: 'help'
+  };
+  if (Object.hasOwn(shellActions, id)) {
+    submitCommand(shellActions[id]);
+  } else if (id === 'restart') {
+    if (activeLaunch) cancelLaunch('skip');
+    window.setTimeout(() => {
+      output.querySelectorAll('.entry').forEach(entry => entry.remove());
+      engine.execute('cd ~');
+      submitCommand('./launch-interactive.sh');
+    }, 0);
+  } else if (id === 'copy') {
+    navigator.clipboard.writeText(output.innerText).then(
+      () => statusLine('Terminal output copied to clipboard.'),
+      () => statusLine('Clipboard permission unavailable; select the text to copy.', 'pink')
+    );
+  } else if (['font-up', 'font-down', 'font-reset'].includes(id)) {
+    if (id === 'font-reset') {
+      body.style.removeProperty('font-size');
+    } else {
+      const current = parseFloat(getComputedStyle(body).fontSize);
+      const delta = id === 'font-up' ? 1 : -1;
+      body.style.fontSize = Math.min(20, Math.max(11, current + delta)) + 'px';
+    }
+  } else if (id === 'new-tab') {
+    window.open('./', '_blank', 'noopener,noreferrer');
+  } else if (id === 'guide') {
+    window.open('https://github.com/yassinebkr/ShellFolio/blob/main/docs/CUSTOMIZATION.md', '_blank', 'noopener,noreferrer');
+  }
+}
+
+function renderMenus() {
+  const bar = $('menu-bar');
+  bar.replaceChildren();
+  const groups = [];
+  for (const group of menuGroups) {
+    const details = document.createElement('details');
+    details.className = 'menu-item';
+    const summary = document.createElement('summary');
+    summary.textContent = group.label;
+    details.appendChild(summary);
+    const dropdown = document.createElement('div');
+    dropdown.className = 'menu-dropdown';
+    for (const action of group.actions) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = action.label;
+      button.addEventListener('click', () => {
+        details.open = false;
+        runMenuAction(action.id);
+      });
+      dropdown.appendChild(button);
+    }
+    details.appendChild(dropdown);
+    details.addEventListener('toggle', () => {
+      if (details.open) {
+        groups.forEach(other => { if (other !== details) other.open = false; });
+      }
+    });
+    bar.appendChild(details);
+    groups.push(details);
+  }
+  document.addEventListener('pointerdown', event => {
+    if (!bar.contains(event.target)) groups.forEach(group => { group.open = false; });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      groups.forEach(group => { group.open = false; });
+    }
+  });
+}
 body.addEventListener('click', e => {
   if (e.target.closest('a,button,input')) return;
   input.focus();

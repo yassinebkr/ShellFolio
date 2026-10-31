@@ -7,8 +7,8 @@
   <meta name="description" content="ShellFolio — explore electronics, embedded systems, and engineering projects in a Debian/XFCE-inspired virtual terminal.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ShellFolio — Terminal</title>
-  <link rel="stylesheet" href="./style.css?v=5">
-  <script type="module" src="./app.js?v=5"></script>
+  <link rel="stylesheet" href="./style.css?v=7">
+  <script type="module" src="./app.js?v=7"></script>
 </head>
 <body>
   <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
@@ -22,10 +22,8 @@
         <span class="minimize"></span><span class="maximize"></span><span class="close"></span>
       </span>
     </header>
-    <!-- XFCE-style menu labels are visual chrome; shell commands belong to the prompt. -->
-    <div class="menu-bar" aria-hidden="true">
-      <span>File</span><span>Edit</span><span>View</span><span>Terminal</span><span>Tabs</span><span>Help</span>
-    </div>
+    <!-- Functional menus are populated from portfolio.config.js. -->
+    <nav class="menu-bar" id="menu-bar" aria-label="Terminal menu"></nav>
 
     <div class="terminal-body" id="terminal-body">
       <div id="output" role="log" aria-label="Terminal output" aria-live="polite" aria-relevant="additions text">
@@ -57,17 +55,10 @@
         </div>
       </form>
       <div id="completion-options" class="completion-options" aria-live="polite" hidden></div>
-      <nav class="quick-commands" aria-label="Suggested commands">
-        <span class="quick-label">TRY</span>
-        <button type="button" data-command="./launch-interactive.sh">./launch-interactive.sh</button>
-        <button type="button" data-command="projects">projects</button>
-        <button type="button" data-command="ls -l ~/workspace">ls -l ~/workspace</button>
-        <button type="button" data-command="skills">skills</button>
-        <button type="button" data-command="inspect lora">inspect lora</button>
-        <button type="button" data-command="about">about</button>
-      </nav>
       <p id="shell-help" class="sr-only">Type help or select a suggested command. Tab accepts a suggestion. Arrow up and down navigate history. Enter executes. During the scripted introduction, press Escape to show the remaining output immediately, or Control+C to interrupt it.</p>
     </div>
+    <!-- Persistent, configurable suggestions remain visible during scrolling. -->
+    <nav class="quick-commands" id="quick-commands" aria-label="Suggested commands"></nav>
   </main>
   <noscript><p class="noscript">JavaScript is required for the virtual terminal.</p></noscript>
 </body>

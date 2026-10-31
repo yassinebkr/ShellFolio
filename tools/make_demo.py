@@ -151,7 +151,12 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="660" view
 <path d="M1006 20h12" stroke="#ddd"/><rect x="1033" y="17" width="8" height="8" fill="none" stroke="#ddd"/>
 <path d="M1058 17l8 8m0-8l-8 8" stroke="#ddd"/>
 <rect x="1" y="37" width="1078" height="29" fill="#2c2c2c"/>
-<text x="16" y="56" fill="#e0e0e0" style="font-family:Arial,sans-serif;font-size:13px">File     Edit     View     Terminal     Tabs     Help</text>
+<rect x="13" y="41" width="44" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="23" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">File</text>
+<rect x="63" y="41" width="43" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="73" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Edit</text>
+<rect x="112" y="41" width="48" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="122" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">View</text>
+<rect x="166" y="41" width="83" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="176" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Terminal</text>
+<rect x="255" y="41" width="49" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="265" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Tabs</text>
+<rect x="310" y="41" width="47" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="320" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Help</text>
 <path d="M1 66H1079" stroke="#4a4a4a"/>
 {''.join(visuals)}
 </svg>'''

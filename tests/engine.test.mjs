@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { TerminalEngine, resolvePath, tokenize } from '../engine.js';
 import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 import { initialScene } from '../startup.js';
+import { quickActions, presetResponses, menuGroups } from '../portfolio.config.js';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -115,4 +116,35 @@ test('every normal entry point starts the visible script instead of the old list
   assert.equal(initialScene('?view=listing'), 'listing');
   assert.equal(initialScene('?run=launch&view=listing'), 'listing');
   assert.equal(initialScene('?view=unknown'), 'launch');
+});
+
+test('custom visitor shortcuts and predefined responses run through the same shell', () => {
+  const shell = new TerminalEngine();
+  assert.ok(quickActions.length >= 5);
+  const commands = quickActions.map(action => action.command);
+  assert.equal(commands.length, new Set(commands).size);
+  for (const action of quickActions) {
+    assert.ok(action.label.trim());
+    assert.ok(!/command unavailable|directory unavailable|unknown project/i.test(
+      stringify(shell.execute(action.command))
+    ), 'Invalid shortcut command: ' + action.command);
+  }
+  assert.equal(shell.suggest('cont').replacement, 'contact');
+  assert.match(stringify(shell.execute('contact')), /github.com\/yassinebkr/);
+  assert.match(stringify(shell.execute('contact private')), /unexpected arguments/);
+  assert.ok(Object.hasOwn(presetResponses, 'contact'));
+});
+
+test('all visible menu items have a known actionable handler', () => {
+  const known = new Set(['restart','workspace','copy','font-up','font-down','font-reset',
+    'intro','clear','new-tab','help','guide']);
+  assert.deepEqual(menuGroups.map(group => group.label),
+    ['File','Edit','View','Terminal','Tabs','Help']);
+  for (const group of menuGroups) {
+    assert.ok(group.actions.length > 0);
+    for (const action of group.actions) {
+      assert.ok(known.has(action.id), 'Unimplemented menu action: ' + action.id);
+      assert.ok(action.label.length > 0);
+    }
+  }
 });

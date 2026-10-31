@@ -17,7 +17,13 @@ ShellFolio is a client-side, read-only terminal simulator presenting a curated e
 
 Commands include `help`, `ls -l`, `cd`, `pwd`, `cat`, `tree`, `skills`, `projects`, `inspect`, `history`, and `clear`. The `Tab` and `→` keys accept a unique inline completion; when candidates are ambiguous, `Tab` lists them. The up/down arrows navigate command history. Output uses text nodes and a curated link allowlist.
 
-The XFCE menu row and window controls are visual elements. Input and behavior are concentrated in the shell prompt, mirroring the central terminal workflow.
+The XFCE menu items are functional drop-down controls with real actions (including clipboard copy, font size adjustment, introductory replay and help). The decorative window controls represent XFCE chrome without pretending to control native windows. Visitor shortcuts form a persistent rail beneath the scrolling terminal output.
+
+## Personalization
+
+Quick actions, their labels, optional predefined responses, and menu entries are
+configured in `portfolio.config.js`. See the [customization guide](CUSTOMIZATION.md)
+for a step-by-step walkthrough rather than editing `app.js` directly.
 
 ## Test and replay
 
