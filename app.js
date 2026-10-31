@@ -234,18 +234,23 @@ function displayCommand(command, location, lines) {
 }
 
 /**
- * Preserve continuity from the GitHub profile's final SVG frame:
- * neofetch is in the initial HTML, then the existing virtual ls command
- * reconstructs the directory listing before the Bash launch is typed.
- * Direct visits keep the original animated intro, while ?view=listing
- * remains a non-animated diagnostic mode.
+ * The profile SVG has already played neofetch. A profile-link visit must
+ * start at its last command (ls), not replay/show neofetch a second time.
+ * Preserve the cloned neofetch markup for later manual commands before
+ * removing the initial HTML. Keep the direct and diagnostic routes intact.
  */
 renderQuickActions();
 const scene = initialScene(window.location.search);
+if (scene === 'profile') {
+  output.replaceChildren();
+}
 if (scene !== 'launch') {
   const listing = engine.execute('ls -l ~/workspace');
   displayCommand('ls -l ~/workspace', '~', listing.lines);
 }
+// Reveal only the selected initial scene; prevents a brief neofetch flash
+// while the module loads on the GitHub profile handoff route.
+output.hidden = false;
 if (scene !== 'listing') {
   submitCommand('./launch-interactive.sh', { typeCommand: true, focusWhenReady: true });
 }
