@@ -39,8 +39,10 @@ The two projects can reference each other's published documentation while retain
 ## GitHub profile launcher integration
 
 The separate SVG profile README links to `https://yassinebkr.github.io/ShellFolio/?run=launch`.
-The site recognizes only `run=launch` and executes a built-in, read-only virtual
-`./launch-interactive.sh` command. Nothing is fetched or run on the host machine.
+The normal Pages route and the explicit `run=launch` route both begin with a
+typed Bash-style `./launch-interactive.sh` invocation, followed by its
+progressive read-only virtual transcript. The explicit `view=listing` route
+instead shows the original directory listing. Nothing is fetched or run on the host machine.
 
 Suggested commands are normal buttons below the prompt; clicking one invokes the
 same interpreter as pressing Enter. Inline completion and Tab remain supported.
@@ -60,6 +62,11 @@ completed transcript (for automated tests and non-animated consumers) and
 the timeline (for the browser). `app.js` progressively renders each step,
 updates ASCII progress indicators in place, and types selected lines at
 human-readable speed without injecting HTML.
+
+The deterministic startup route is chosen in `startup.js` and tested directly
+in Node. A visitor can replay the script using the suggestion below the
+prompt. The script command itself is typed into the shell transcript before
+the first loading step, with reduced-motion preferences respected.
 
 All status messages refer to the *virtual* portfolio model. There are no
 network fetches, real filesystem probes, or claims about hardware currently

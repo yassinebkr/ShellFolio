@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TerminalEngine, resolvePath, tokenize } from '../engine.js';
 import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
+import { initialScene } from '../startup.js';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -105,4 +106,13 @@ test('launcher shares a declarative, sequential transcript with the browser', ()
   assert.ok(LAUNCH_STEPS.every(s => ['line', 'progress', 'type'].includes(s.kind)));
   assert.match(stringify(response), /45 km.*validated/i);
   assert.ok(!JSON.stringify(LAUNCH_STEPS).includes('<script'));
+});
+
+test('every normal entry point starts the visible script instead of the old listing', () => {
+  assert.equal(initialScene(''), 'launch');
+  assert.equal(initialScene('?run=launch'), 'launch');
+  assert.equal(initialScene('?foo=bar'), 'launch');
+  assert.equal(initialScene('?view=listing'), 'listing');
+  assert.equal(initialScene('?run=launch&view=listing'), 'listing');
+  assert.equal(initialScene('?view=unknown'), 'launch');
 });

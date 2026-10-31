@@ -7,8 +7,8 @@
   <meta name="description" content="ShellFolio — explore electronics, embedded systems, and engineering projects in a Debian/XFCE-inspired virtual terminal.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ShellFolio — Terminal</title>
-  <link rel="stylesheet" href="./style.css?v=4">
-  <script type="module" src="./app.js?v=4"></script>
+  <link rel="stylesheet" href="./style.css?v=5">
+  <script type="module" src="./app.js?v=5"></script>
 </head>
 <body>
   <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
@@ -59,6 +59,7 @@
       <div id="completion-options" class="completion-options" aria-live="polite" hidden></div>
       <nav class="quick-commands" aria-label="Suggested commands">
         <span class="quick-label">TRY</span>
+        <button type="button" data-command="./launch-interactive.sh">./launch-interactive.sh</button>
         <button type="button" data-command="projects">projects</button>
         <button type="button" data-command="ls -l ~/workspace">ls -l ~/workspace</button>
         <button type="button" data-command="skills">skills</button>

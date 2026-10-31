@@ -1,5 +1,6 @@
 /** Browser controller for ShellFolio's read-only terminal simulator. */
 import { TerminalEngine } from './engine.js';
+import { initialScene } from './startup.js';
 
 const engine = new TerminalEngine();
 const $ = id => document.getElementById(id);
@@ -47,7 +48,7 @@ function scrollToBottom() {
  * Script output is built with textContent, not HTML strings. A single status
  * row is updated in-place for each spinner, like a normal CLI progress line.
  */
-async function playLaunch(entry, timeline) {
+async function playLaunch(entry, timeline, typedCommand = '') {
   const controller = new AbortController();
   const signal = controller.signal;
   const result = document.createElement('div');
@@ -56,11 +57,15 @@ async function playLaunch(entry, timeline) {
   entry.appendChild(result);
   const run = { controller };
   activeLaunch = run;
+  const commandNode = entry.querySelector('.entry-command span:last-child');
+  // A startup command is typed into the visible previous prompt before
+  // execution output begins. Replays invoked by the user show it immediately.
+  if (typedCommand && !commandNode) throw new Error('Shell prompt is missing');
   input.readOnly = true;
   document.querySelectorAll('[data-command]').forEach(button => { button.disabled = true; });
   const quickPace = () => reducedMotion.matches;
   let currentRow = null;
-  let stepIndex = 0;
+  let stepIndex = -1;
   const renderFinal = (step, existingRow = null) => {
     const row = existingRow || document.createElement('div');
     row.className = 'line';
@@ -70,6 +75,19 @@ async function playLaunch(entry, timeline) {
     scrollToBottom();
   };
   try {
+    if (typedCommand) {
+      if (quickPace()) {
+        commandNode.textContent = typedCommand;
+      } else {
+        await sleep(190, signal);
+        for (const character of typedCommand) {
+          commandNode.textContent += character;
+          scrollToBottom();
+          await sleep(34, signal);
+        }
+        await sleep(220, signal);
+      }
+    }
     for (stepIndex = 0; stepIndex < timeline.length; stepIndex++) {
       const step = timeline[stepIndex];
       currentRow = null;
@@ -103,10 +121,13 @@ async function playLaunch(entry, timeline) {
     }
   } catch {
     if (signal.reason === 'skip') {
-      // Finish the current partially rendered line and all remaining steps.
-      if (currentRow) renderFinal(timeline[stepIndex], currentRow);
-      else renderFinal(timeline[stepIndex]);
-      for (const step of timeline.slice(stepIndex + 1)) renderFinal(step);
+      // A skip may occur during command typing, before the first output row.
+      if (typedCommand) commandNode.textContent = typedCommand;
+      if (stepIndex >= 0 && stepIndex < timeline.length) {
+        if (currentRow) renderFinal(timeline[stepIndex], currentRow);
+        else renderFinal(timeline[stepIndex]);
+      }
+      for (const step of timeline.slice(Math.max(0, stepIndex + 1))) renderFinal(step);
     } else {
       const interrupted = document.createElement('div');
       interrupted.className = 'line script-muted';
@@ -173,15 +194,17 @@ function displayCommand(command, location, lines) {
 }
 
 /**
- * Keep the initial session consistent with the virtual interpreter.
- * The README launcher uses ?run=launch; only that exact flag is accepted.
+ * Run the authored introduction for every normal visit, not only for
+ * profile-README links carrying ?run=launch. Display and type the Bash-style
+ * invocation before progressively rendering its virtual output.
+ *
+ * An explicit ?view=listing remains available to inspect the original
+ * directory listing without initiating the guided introduction.
  */
-const launcherRequested = new URLSearchParams(window.location.search).get('run') === 'launch';
-if (launcherRequested) {
-  submitCommand('./launch-interactive.sh');
+if (initialScene(window.location.search) === 'launch') {
+  submitCommand('./launch-interactive.sh', { typeCommand: true });
 } else {
-  const initialSession = new TerminalEngine();
-  const listing = initialSession.execute('ls -l ~/workspace');
+  const listing = engine.execute('ls -l ~/workspace');
   displayCommand('ls -l ~/workspace', '~', listing.lines);
 }
 
@@ -198,7 +221,7 @@ function refreshCompletion(showMatches = false) {
   completionOptions.textContent = completionOptions.hidden ? '' : suggestion.matches.slice(0, 8).join('    ');
 }
 
-function submitCommand(value = input.value) {
+function submitCommand(value = input.value, { typeCommand = false } = {}) {
   if (activeLaunch) {
     cancelLaunch('interrupt');
     return;
@@ -210,9 +233,9 @@ function submitCommand(value = input.value) {
   if (response.clear) {
     output.querySelectorAll('.entry').forEach(entry => entry.remove());
   } else if (response.timeline) {
-    const entry = displayCommand(raw, location, []);
-    // Asynchronous progress is intentional; avoid awaiting it in the input path.
-    void playLaunch(entry, response.timeline);
+    const entry = displayCommand(typeCommand ? '' : raw, location, []);
+    // The startup prompt is visibly typed; a manual replay starts immediately.
+    void playLaunch(entry, response.timeline, typeCommand ? raw : '');
   } else {
     displayCommand(raw, location, response.lines);
   }
