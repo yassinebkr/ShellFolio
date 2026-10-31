@@ -69,7 +69,7 @@ async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = f
   result.className = 'entry-result';
   result.setAttribute('aria-label', 'Virtual portfolio launcher output');
   entry.appendChild(result);
-  const run = { controller, focusWhenReady, pendingTyping: '' };
+  const run = { controller, focusWhenReady, focusOnEscape: false, pendingTyping: '' };
   activeLaunch = run;
   const commandNode = entry.querySelector('.entry-command span:last-child');
   // A startup command is typed into the visible previous prompt before
@@ -166,8 +166,12 @@ async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = f
       const noSelection = !selection || selection.isCollapsed;
       const backgroundFocused = document.activeElement === document.body ||
         document.activeElement === document.documentElement;
-      if (!pendingShortcut && run.focusWhenReady && document.hasFocus() &&
-          noSelection && backgroundFocused) {
+      // Explicit Escape means the visitor wants the prompt immediately,
+      // including after clicking elsewhere or replaying via Run.
+      const shouldFocus = run.focusOnEscape ||
+        (run.focusWhenReady && backgroundFocused);
+      if (!pendingShortcut && shouldFocus && document.hasFocus() &&
+          noSelection) {
         input.focus({ preventScroll: true });
         if (run.pendingTyping) input.value += run.pendingTyping;
       }
@@ -472,8 +476,14 @@ document.addEventListener('keydown', event => {
   if (!activeLaunch && !pendingShortcut) return;
   if (event.key === 'Escape') {
     event.preventDefault();
-    if (pendingShortcut) cancelPendingShortcut();
-    else cancelLaunch('skip');
+    if (pendingShortcut) {
+      cancelPendingShortcut();
+    } else {
+      // Do not depend on which element currently holds keyboard focus:
+      // Escape is an explicit request to finish playback and resume typing.
+      activeLaunch.focusOnEscape = true;
+      cancelLaunch('skip');
+    }
   } else if (event.ctrlKey && event.key.toLowerCase() === 'c') {
     // Native Ctrl+C must copy selected text even during any pending activity.
     const selection = window.getSelection();

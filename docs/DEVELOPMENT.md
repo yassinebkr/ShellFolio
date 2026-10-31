@@ -54,7 +54,7 @@ flowchart TD
 | Typed command | Execute immediately on Enter |
 | Shortcut | Echo immediately, then display results after 280 ms |
 | Intro playback | Hide the active input until completion; focus the prompt when ready |
-| Escape | Finish the intro |
+| Escape | Finish the intro and focus the prompt, including after Run replay |
 | Ctrl+C | Copy selected text, otherwise interrupt playback |
 | Tab / → | Accept unique command completion |
 | ↑ / ↓ | Browse command history |
@@ -64,7 +64,9 @@ flowchart TD
 The initial introduction focuses the command input once it finishes, allowing
 immediate keyboard use. Typing while it is still playing finishes the intro
 and preserves the first character. Clicking elsewhere or selecting text
-disables this automatic focus; subsequent commands never force it.
+disables the automatic focus. **Escape** explicitly finishes the current
+introduction and focuses the ready prompt, unless a text selection is active.
+Regular commands do not steal focus.
 
 ### Neofetch rendering
 

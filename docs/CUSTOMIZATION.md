@@ -72,7 +72,7 @@ Finish by inviting visitors to type `help` or use the shortcuts.
 | Click Run | Replay the introduction |
 | Click Clean | Clear visible terminal output |
 | Select output | Normal browser selection and copy |
-| Press Escape | Complete the active introduction; focus the ready prompt |
+| Press Escape | Finish the intro and focus the prompt, including after replay |
 | Start typing during intro | Complete the intro and keep the first character |
 | Click or select during intro | Preserve the visitor's focus and selection |
 | Press Ctrl+C | Copy selected text or interrupt active playback |

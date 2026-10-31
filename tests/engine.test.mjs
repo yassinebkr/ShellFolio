@@ -174,7 +174,7 @@ test('copyable output never triggers generic focus stealing', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
   assert.doesNotMatch(app, /body\.addEventListener\('click'/);
-  assert.match(app, /run\.focusWhenReady && document\.hasFocus\(\)/);
+  assert.match(app, /shouldFocus && document\.hasFocus\(\)/);
   assert.match(app, /window\.getSelection\(\)/);
   assert.match(app, /selection && !selection\.isCollapsed/);
   assert.match(css, /user-select: text/);
@@ -292,11 +292,22 @@ test('automatic introduction restores keyboard focus without stealing selections
   assert.match(app, /focusWhenReady = false/);
   assert.match(app, /focusWhenReady: true/);
   assert.match(app, /const noSelection = !selection \|\| selection\.isCollapsed/);
-  assert.match(app, /run\.focusWhenReady && document\.hasFocus\(\)/);
+  assert.match(app, /shouldFocus && document\.hasFocus\(\)/);
   assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(app, /document\.addEventListener\('pointerdown'/);
   assert.match(app, /activeLaunch\.focusWhenReady = false/);
   assert.match(app, /activeLaunch\.pendingTyping \+= event\.key/);
   assert.match(app, /cancelLaunch\('skip'\)/);
   assert.match(app, /if \(!pendingShortcut\)/);
+});
+
+test('Escape explicitly returns focus to the prompt after skipping playback', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(app, /focusOnEscape: false/);
+  assert.match(app, /activeLaunch\.focusOnEscape = true/);
+  assert.match(app, /const shouldFocus = run\.focusOnEscape \|\|/);
+  assert.match(app, /if \(!pendingShortcut && shouldFocus && document\.hasFocus\(\) &&/);
+  assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /noSelection/);
+  assert.match(app, /if \(pendingShortcut\) \{\s*cancelPendingShortcut\(\)/);
 });
