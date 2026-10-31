@@ -174,7 +174,7 @@ test('copyable output never triggers generic focus stealing', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
   assert.doesNotMatch(app, /body\.addEventListener\('click'/);
-  assert.match(app, /shouldFocus && document\.hasFocus\(\)/);
+  assert.match(app, /restorePrompt\(\{ focus: shouldFocus \}\)/);
   assert.match(app, /window\.getSelection\(\)/);
   assert.match(app, /selection && !selection\.isCollapsed/);
   assert.match(css, /user-select: text/);
@@ -291,7 +291,7 @@ test('automatic introduction restores keyboard focus without stealing selections
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   assert.match(app, /focusWhenReady = false/);
   assert.match(app, /focusWhenReady: true/);
-  assert.match(app, /const noSelection = !selection \|\| selection\.isCollapsed/);
+  assert.match(app, /if \(focus && document\.hasFocus\(\) && \(!selection \|\| selection\.isCollapsed\)\)/);
   assert.match(app, /shouldFocus && document\.hasFocus\(\)/);
   assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(app, /document\.addEventListener\('pointerdown'/);
@@ -306,7 +306,7 @@ test('Escape explicitly returns focus to the prompt after skipping playback', ()
   assert.match(app, /focusOnEscape: false/);
   assert.match(app, /activeLaunch\.focusOnEscape = true/);
   assert.match(app, /const shouldFocus = run\.focusOnEscape \|\|/);
-  assert.match(app, /if \(!pendingShortcut && shouldFocus && document\.hasFocus\(\) &&/);
+  assert.match(app, /const shouldFocus = run\.focusOnEscape \|\|/);
   assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(app, /noSelection/);
   assert.match(app, /if \(pendingShortcut\) \{\s*cancelPendingShortcut\(\)/);
@@ -345,4 +345,27 @@ test('README SVG pauses clearly between commands without reverse erasure', () =>
   assert.ok(shownAt('sequence1') < typedAt(1));
   assert.ok(shownAt('sequence2') < typedAt(2));
   assert.ok(shownAt('sequence3') < typedAt(3));
+});
+
+test('shortcut completion always restores the editable prompt and keyboard focus', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const restore = app.slice(app.indexOf('function restorePrompt('), app.indexOf('function sleep('));
+  assert.match(restore, /if \(activeLaunch \|\| pendingShortcut\) return false;/);
+  assert.match(restore, /input\.readOnly = false;/);
+  assert.match(restore, /form\.hidden = false;/);
+  assert.match(restore, /input\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /submitCommand\(raw, \{ existingEntry: entry, focusWhenReady: current\.focusWhenDone \}\)/);
+  assert.match(app, /restorePrompt\(\{ focus: focusWhenReady \}\)/);
+  assert.match(app, /restorePrompt\(\{ focus: current\.focusWhenDone \}\)/);
+  assert.match(app, /run\.startedByShortcut/);
+  assert.match(html, /app\.js\?v=13/);
+});
+test('shortcut focus restoration respects another action and text selection', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(app, /if \(pendingShortcut === current\) pendingShortcut = null;/);
+  assert.match(app, /if \(activeLaunch \|\| pendingShortcut\) return false;/);
+  assert.match(app, /if \(pendingShortcut\) pendingShortcut\.focusWhenDone = false;/);
+  assert.match(app, /\(!selection \|\| selection\.isCollapsed\)/);
+  assert.match(app, /activeLaunch\.focusOnEscape = true/);
 });

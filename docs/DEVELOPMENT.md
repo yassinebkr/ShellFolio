@@ -52,7 +52,7 @@ flowchart TD
 | Interaction | Behavior |
 | --- | --- |
 | Typed command | Execute immediately on Enter |
-| Shortcut | Echo immediately, then display results after 280 ms |
+| Shortcut | Echo immediately, then display results after 280 ms; restore editable prompt and keyboard focus |
 | Intro playback | Hide the active input until completion; focus the prompt when ready |
 | Escape | Finish the intro and focus the prompt, including after Run replay |
 | Ctrl+C | Copy selected text, otherwise interrupt playback |
@@ -67,6 +67,12 @@ and preserves the first character. Clicking elsewhere or selecting text
 disables the automatic focus. **Escape** explicitly finishes the current
 introduction and focuses the ready prompt, unless a text selection is active.
 Regular commands do not steal focus.
+
+Shortcut completion (including `Clean` and `Run`) uses one
+`restorePrompt()` path that clears `readOnly` and `hidden` before focusing.
+While a script or another shortcut is still active, it waits instead of
+restoring prematurely. Clicking elsewhere or selecting output disables
+shortcut autofocus.
 
 ### Neofetch rendering
 

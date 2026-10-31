@@ -68,7 +68,7 @@ Finish by inviting visitors to type `help` or use the shortcuts.
 
 | Action | Expected behavior |
 | --- | --- |
-| Click a shortcut | Full command appears; result follows after 280 ms |
+| Click a shortcut | Full command appears, result follows after 280 ms, then keyboard input works |
 | Click Run | Replay the introduction |
 | Click Clean | Clear visible terminal output |
 | Select output | Normal browser selection and copy |

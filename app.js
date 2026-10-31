@@ -59,17 +59,34 @@ function scrollToBottom() {
 }
 
 /**
+ * Single exit path for every shortcut and launcher.
+ * Re-enable editing before requesting focus. Do not steal a text selection or
+ * revive the prompt while another shortcut/script is still running.
+ */
+function restorePrompt({ focus = false } = {}) {
+  if (activeLaunch || pendingShortcut) return false;
+  input.readOnly = false;
+  form.hidden = false;
+  const selection = window.getSelection();
+  if (focus && document.hasFocus() && (!selection || selection.isCollapsed)) {
+    input.focus({ preventScroll: true });
+  }
+  refreshCompletion();
+  return true;
+}
+
+/**
  * Script output is built with textContent, not HTML strings. A single status
  * row is updated in-place for each spinner, like a normal CLI progress line.
  */
-async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = false) {
+async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = false, startedByShortcut = false) {
   const controller = new AbortController();
   const signal = controller.signal;
   const result = document.createElement('div');
   result.className = 'entry-result';
   result.setAttribute('aria-label', 'Virtual portfolio launcher output');
   entry.appendChild(result);
-  const run = { controller, focusWhenReady, focusOnEscape: false, pendingTyping: '' };
+  const run = { controller, focusWhenReady, startedByShortcut, focusOnEscape: false, pendingTyping: '' };
   activeLaunch = run;
   const commandNode = entry.querySelector('.entry-command span:last-child');
   // A startup command is typed into the visible previous prompt before
@@ -154,28 +171,14 @@ async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = f
   } finally {
     if (activeLaunch === run) {
       activeLaunch = null;
-      // A shortcut chosen during playback may already be awaiting its own
-      // response; do not prematurely show the next interactive prompt.
-      if (!pendingShortcut) {
-        input.readOnly = false;
-        form.hidden = false;
-      }
-      // Focus exactly once after the default introduction, not after a manual
-      // replay or after intentional pointer interaction / text selection.
-      const selection = window.getSelection();
-      const noSelection = !selection || selection.isCollapsed;
+      // The next shortcut may already be waiting for its response. Never
+      // unlock the input until that pending action also completes.
       const backgroundFocused = document.activeElement === document.body ||
         document.activeElement === document.documentElement;
-      // Explicit Escape means the visitor wants the prompt immediately,
-      // including after clicking elsewhere or replaying via Run.
       const shouldFocus = run.focusOnEscape ||
-        (run.focusWhenReady && backgroundFocused);
-      if (!pendingShortcut && shouldFocus && document.hasFocus() &&
-          noSelection) {
-        input.focus({ preventScroll: true });
-        if (run.pendingTyping) input.value += run.pendingTyping;
-      }
-      refreshCompletion();
+        (run.focusWhenReady && (backgroundFocused || run.startedByShortcut));
+      if (run.pendingTyping) input.value += run.pendingTyping;
+      restorePrompt({ focus: shouldFocus });
       scrollToBottom();
     }
   }
@@ -287,7 +290,7 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
   } else if (response.timeline) {
     const entry = existingEntry || displayCommand(typeCommand ? '' : raw, location, []);
     // Startup is typed progressively; shortcuts print the entire command at once.
-    void playLaunch(entry, response.timeline, typeCommand ? raw : '', focusWhenReady);
+    void playLaunch(entry, response.timeline, typeCommand ? raw : '', focusWhenReady, Boolean(existingEntry));
   } else if (response.view === 'system-profile' && initialSystemProfile) {
     const entry = existingEntry || displayCommand(raw, location, []);
     const result = document.createElement('div');
@@ -308,8 +311,7 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
     displayCommand(raw, location, response.lines);
   }
   if (existingEntry && !response.timeline) {
-    input.readOnly = false;
-    form.hidden = false;
+    restorePrompt({ focus: focusWhenReady });
   }
   pwdLabel.textContent = ':' + engine.location;
   windowTitle.textContent = `Terminal - yassine@debian: ${engine.location}`;
@@ -388,10 +390,7 @@ function cancelPendingShortcut() {
   row.textContent = '^C';
   result.appendChild(row);
   current.entry.appendChild(result);
-  if (!activeLaunch) {
-    input.readOnly = false;
-    form.hidden = false;
-  }
+  restorePrompt({ focus: true });
   return true;
 }
 
@@ -411,7 +410,7 @@ async function runQuickAction(command) {
   if (activeLaunch) cancelLaunch('interrupt');
 
   const entry = displayCommand(raw, engine.location, []);
-  const current = { controller: new AbortController(), entry };
+  const current = { controller: new AbortController(), entry, focusWhenDone: true };
   pendingShortcut = current;
   form.hidden = true;
   input.readOnly = true;
@@ -422,15 +421,14 @@ async function runQuickAction(command) {
     if (pendingShortcut !== current) return;
     pendingShortcut = null;
     // The existing line stays mounted; only its output is appended later.
-    submitCommand(raw, { existingEntry: entry });
+    submitCommand(raw, { existingEntry: entry, focusWhenReady: current.focusWhenDone });
   } catch {
     // A newer shortcut or Ctrl+C already marked this invocation interrupted.
   } finally {
-    if (pendingShortcut === current) {
-      pendingShortcut = null;
-      input.readOnly = false;
-      form.hidden = false;
-    }
+    if (pendingShortcut === current) pendingShortcut = null;
+    // Covers aborts, exceptions and shortcuts that have no scripted output.
+    // A running launcher remains responsible for unlocking on completion.
+    restorePrompt({ focus: current.focusWhenDone });
   }
 }
 
@@ -469,6 +467,7 @@ function renderQuickActions() {
 // Pointer interaction during the intro prevents later surprise autofocus.
 document.addEventListener('pointerdown', () => {
   if (activeLaunch?.focusWhenReady) activeLaunch.focusWhenReady = false;
+  if (pendingShortcut) pendingShortcut.focusWhenDone = false;
 }, true);
 
 // The input is hidden during playback, so listen for interruption globally.
