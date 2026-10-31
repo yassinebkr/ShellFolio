@@ -311,3 +311,38 @@ test('Escape explicitly returns focus to the prompt after skipping playback', ()
   assert.match(app, /noSelection/);
   assert.match(app, /if \(pendingShortcut\) \{\s*cancelPendingShortcut\(\)/);
 });
+
+test('README SVG pauses clearly between commands without reverse erasure', () => {
+  const svg = readFileSync(new URL('../assets/terminal-demo-paced.svg', import.meta.url), 'utf8');
+  const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+  assert.match(readme, /assets\/terminal-demo-paced\.svg/);
+  assert.match(readme, /\]\(https:\/\/yassinebkr\.github\.io\/ShellFolio\/\)/);
+  assert.match(svg, /\.transcript\{animation:replayFade 11s linear infinite\}/);
+  assert.match(svg, /id="quick-actions-preview"/);
+  assert.match(svg, /prefers-reduced-motion:reduce/);
+  assert.doesNotMatch(svg, /100% \{ width:0; \}/);
+
+  const seconds = percentage => Number(percentage) * 11 / 100;
+  function shownAt(name) {
+    const found = svg.match(new RegExp(`@keyframes ${name} \\{0%, [\\d.]+% \\{opacity:0;\\} ([\\d.]+)%, 100%`));
+    assert.ok(found, `Missing reveal animation ${name}`);
+    return seconds(found[1]);
+  }
+  function typedAt(index, end = false) {
+    const found = svg.match(new RegExp(`@keyframes typing${index} \\{ 0%, ([\\d.]+)% \\{ width:0; \\} ([\\d.]+)%, 100%`));
+    assert.ok(found, `Missing typing animation ${index}`);
+    return seconds(found[end ? 2 : 1]);
+  }
+  const pauses = [
+    typedAt(1) - shownAt('result0'),
+    typedAt(2) - typedAt(1, true),
+    typedAt(3) - shownAt('result2')
+  ];
+  for (const pause of pauses) {
+    assert.ok(pause >= 0.7 && pause <= 0.95, `Unnatural command gap: ${pause}s`);
+  }
+  assert.ok(shownAt('lastPrompt') - shownAt('result3') <= 0.2);
+  assert.ok(shownAt('sequence1') < typedAt(1));
+  assert.ok(shownAt('sequence2') < typedAt(2));
+  assert.ok(shownAt('sequence3') < typedAt(3));
+});
