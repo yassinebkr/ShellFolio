@@ -103,8 +103,11 @@ separate from content configuration.
 `assets/demo.svg` is the generated animated preview used in this
 repository's README. Do not edit its generated markup by hand:
 `tools/make_demo.py` replays commands through the real `engine.js`
-and produces the preview. Its menus are visual approximations of the
-website, not functional SVG controls.
+and produces the preview. The shortcut labels are loaded from
+`portfolio.config.js` at build time so the preview stays synchronized with
+the live site's visitor actions. GitHub displays SVG previews as images:
+the buttons in the illustration are visual only, while the website buttons
+execute their corresponding virtual commands.
 
 The related Python SVG generator for the GitHub profile README lives in
 a separate repository: https://github.com/yassinebkr/test

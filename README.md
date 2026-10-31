@@ -2,11 +2,11 @@
 
 An interactive, Debian/XFCE-style terminal portfolio running in the browser.
 
-[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/) · [**Run the README launcher**](https://yassinebkr.github.io/ShellFolio/?run=launch)
+[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/) · [**Read the launch script**](launch-script.js)
 
 [![ShellFolio virtual terminal demonstration](assets/demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
-The animation above replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS.
+The animation also shows the **predefined visitor shortcuts** from the site. The SVG is a visual preview; the shortcuts become clickable on the live page. It replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS.
 
 ## Features
 

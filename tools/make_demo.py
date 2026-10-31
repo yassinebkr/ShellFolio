@@ -56,6 +56,64 @@ console.log(JSON.stringify(transcript));
     return transcript
 
 
+def get_quick_actions() -> list[dict]:
+    """Read the website's visitor shortcuts from its own JS configuration.
+
+    This avoids maintaining a separate list of shortcut labels for the SVG
+    preview. The visual buttons in a GitHub README image stay inert.
+    """
+    program = (
+        "import { quickActions } from './portfolio.config.js'; "
+        "console.log(JSON.stringify(quickActions));"
+    )
+    completed = subprocess.run(
+        ["node", "--input-type=module", "-e", program],
+        cwd=ROOT, capture_output=True, text=True, check=True, timeout=15,
+    )
+    actions = json.loads(completed.stdout)
+    if not isinstance(actions, list) or not 1 <= len(actions) <= 12:
+        raise ValueError("Expected between one and twelve visitor shortcuts")
+    if any(
+        not isinstance(item, dict)
+        or not isinstance(item.get("label"), str)
+        or not item["label"].strip()
+        or not isinstance(item.get("command"), str)
+        for item in actions
+    ):
+        raise ValueError("Visitor shortcuts must have labels and commands")
+    return actions
+
+
+def render_quick_actions(actions: list[dict]) -> str:
+    """Render a static approximation of the persistent quick-action rail."""
+    elements = [
+        '<g id="quick-actions-preview">',
+        '<rect x="1" y="659" width="1078" height="60" fill="#0d1013"/>',
+        '<path d="M1 659H1079" stroke="#30343a"/>',
+        '<text x="26" y="694" fill="#929da9" '
+        'style="font-family:DejaVu Sans Mono,monospace;'
+        'font-size:11px;letter-spacing:1px">TRY</text>',
+    ]
+    x = 66
+    for action in actions:
+        label = action["label"]
+        width = max(56, 18 + 9 * len(label))
+        if x + width > 1060:
+            raise ValueError("Shortcut labels do not fit the SVG preview")
+        elements.append(
+            f'<rect x="{x}" y="677" width="{width}" height="28" rx="3" '
+            'fill="#1a2025" stroke="#434b54" stroke-width="1"/>'
+        )
+        elements.append(
+            f'<text x="{x + 10}" y="696" fill="#bdcbd8" '
+            'style="font-family:DejaVu Sans Mono,monospace;'
+            f'font-size:12px">{svg_escape(label)}</text>'
+        )
+        x += width + 8
+    elements.append("</g>")
+    return "\n".join(elements)
+
+
 def line_svg(y: int, parts: list[dict]) -> str:
     """Preserve the virtual shell's structured styling in SVG tspans."""
     colors = {
@@ -139,11 +197,11 @@ visuals.append(
 
 # Reduced-motion users can inspect the complete command transcript statically.
 css.append('@media(prefers-reduced-motion:reduce){.sequence0,.sequence1,.sequence2,.sequence3,.result0,.result2,.result3,.lastPrompt{opacity:1;animation:none}.typing0,.typing1,.typing2,.typing3{animation:none;width:999px}.cursor{animation:none}}')
-svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="660" viewBox="0 0 1080 660" role="img" aria-labelledby="title description">
+svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720" role="img" aria-labelledby="title description">
 <title id="title">ShellFolio — interactive terminal demonstration</title>
 <desc id="description">Animated replay generated from the ShellFolio virtual command engine: list directories, navigate to projects, list files, and inspect the validated LoRa field test.</desc>
 <style>{''.join(css)}</style>
-<rect x="0.5" y="0.5" width="1079" height="659" rx="5" fill="#050505" stroke="#575757"/>
+<rect x="0.5" y="0.5" width="1079" height="719" rx="5" fill="#050505" stroke="#575757"/>
 <path d="M5 1H1075Q1079 1 1079 5V37H1V5Q1 1 5 1Z" fill="#353535"/>
 <rect x="14" y="11" width="18" height="17" rx="2" fill="#202428" stroke="#b2b9c1"/>
 <path d="M19 15L23 19L19 23M25 23H29" stroke="#f0f0f0" stroke-width="1.3" fill="none"/>
@@ -159,6 +217,7 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="660" view
 <rect x="310" y="41" width="47" height="21" rx="3" fill="#383838" stroke="#646464" stroke-width="0.9"/><text x="320" y="56" fill="#ededed" style="font-family:Arial,sans-serif;font-size:13px">Help</text>
 <path d="M1 66H1079" stroke="#4a4a4a"/>
 {''.join(visuals)}
+{render_quick_actions(get_quick_actions())}
 </svg>'''
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(svg, encoding="utf-8")
