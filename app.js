@@ -62,14 +62,14 @@ function scrollToBottom() {
  * Script output is built with textContent, not HTML strings. A single status
  * row is updated in-place for each spinner, like a normal CLI progress line.
  */
-async function playLaunch(entry, timeline, typedCommand = '') {
+async function playLaunch(entry, timeline, typedCommand = '', focusWhenReady = false) {
   const controller = new AbortController();
   const signal = controller.signal;
   const result = document.createElement('div');
   result.className = 'entry-result';
   result.setAttribute('aria-label', 'Virtual portfolio launcher output');
   entry.appendChild(result);
-  const run = { controller };
+  const run = { controller, focusWhenReady, pendingTyping: '' };
   activeLaunch = run;
   const commandNode = entry.querySelector('.entry-command span:last-child');
   // A startup command is typed into the visible previous prompt before
@@ -160,9 +160,17 @@ async function playLaunch(entry, timeline, typedCommand = '') {
         input.readOnly = false;
         form.hidden = false;
       }
-      // The persistent quick-action rail remains interactive throughout.
-      // Keep the selection and active element untouched. The visitor can
-      // click the prompt to type; completion does not require autofocus.
+      // Focus exactly once after the default introduction, not after a manual
+      // replay or after intentional pointer interaction / text selection.
+      const selection = window.getSelection();
+      const noSelection = !selection || selection.isCollapsed;
+      const backgroundFocused = document.activeElement === document.body ||
+        document.activeElement === document.documentElement;
+      if (!pendingShortcut && run.focusWhenReady && document.hasFocus() &&
+          noSelection && backgroundFocused) {
+        input.focus({ preventScroll: true });
+        if (run.pendingTyping) input.value += run.pendingTyping;
+      }
       refreshCompletion();
       scrollToBottom();
     }
@@ -226,7 +234,7 @@ function displayCommand(command, location, lines) {
  */
 renderQuickActions();
 if (initialScene(window.location.search) === 'launch') {
-  submitCommand('./launch-interactive.sh', { typeCommand: true });
+  submitCommand('./launch-interactive.sh', { typeCommand: true, focusWhenReady: true });
 } else {
   const listing = engine.execute('ls -l ~/workspace');
   displayCommand('ls -l ~/workspace', '~', listing.lines);
@@ -258,11 +266,11 @@ function refreshCompletion(showMatches = false) {
   updateTerminalCursor();
 }
 
-function submitCommand(value = input.value, { typeCommand = false, existingEntry = null } = {}) {
+function submitCommand(value = input.value, { typeCommand = false, existingEntry = null, focusWhenReady = false } = {}) {
   if (activeLaunch) {
     // A manual command cannot overlap a running launch sequence.
     cancelLaunch('interrupt');
-    window.setTimeout(() => submitCommand(value, { typeCommand, existingEntry }), 0);
+    window.setTimeout(() => submitCommand(value, { typeCommand, existingEntry, focusWhenReady }), 0);
     return;
   }
   const raw = String(value).trim();
@@ -275,7 +283,7 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
   } else if (response.timeline) {
     const entry = existingEntry || displayCommand(typeCommand ? '' : raw, location, []);
     // Startup is typed progressively; shortcuts print the entire command at once.
-    void playLaunch(entry, response.timeline, typeCommand ? raw : '');
+    void playLaunch(entry, response.timeline, typeCommand ? raw : '', focusWhenReady);
   } else if (response.view === 'system-profile' && initialSystemProfile) {
     const entry = existingEntry || displayCommand(raw, location, []);
     const result = document.createElement('div');
@@ -454,6 +462,11 @@ function renderQuickActions() {
   rail.appendChild(source);
 }
 
+// Pointer interaction during the intro prevents later surprise autofocus.
+document.addEventListener('pointerdown', () => {
+  if (activeLaunch?.focusWhenReady) activeLaunch.focusWhenReady = false;
+}, true);
+
 // The input is hidden during playback, so listen for interruption globally.
 document.addEventListener('keydown', event => {
   if (!activeLaunch && !pendingShortcut) return;
@@ -468,6 +481,18 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     if (pendingShortcut) cancelPendingShortcut();
     else cancelLaunch('interrupt');
+  } else if (activeLaunch?.focusWhenReady &&
+             event.key.length === 1 && !event.ctrlKey && !event.altKey &&
+             !event.metaKey && !event.isComposing &&
+             (document.activeElement === document.body ||
+              document.activeElement === document.documentElement)) {
+    // Typing before the intro completes reveals its remaining output and
+    // sends the first key to the real input when it becomes visible.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
+    event.preventDefault();
+    activeLaunch.pendingTyping += event.key;
+    cancelLaunch('skip');
   }
 }, true);
 // Clicking terminal output should permit ordinary text selection and copy.

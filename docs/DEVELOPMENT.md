@@ -53,14 +53,18 @@ flowchart TD
 | --- | --- |
 | Typed command | Execute immediately on Enter |
 | Shortcut | Echo immediately, then display results after 280 ms |
-| Intro playback | Hide the active input until completion |
+| Intro playback | Hide the active input until completion; focus the prompt when ready |
 | Escape | Finish the intro |
 | Ctrl+C | Copy selected text, otherwise interrupt playback |
 | Tab / → | Accept unique command completion |
 | ↑ / ↓ | Browse command history |
 | `neofetch` | Render the complete Debian profile and palette, as on initial load |
+| Type during intro | Finish the intro and preserve the first typed character |
 
-The browser does not take focus from a visitor's text selection.
+The initial introduction focuses the command input once it finishes, allowing
+immediate keyboard use. Typing while it is still playing finishes the intro
+and preserves the first character. Clicking elsewhere or selecting text
+disables this automatic focus; subsequent commands never force it.
 
 ### Neofetch rendering
 
@@ -68,6 +72,9 @@ The initial Debian profile lives in `index.html` as `.sysfetch`. On load,
 `app.js` preserves a copy of that element, then clones it whenever the
 interpreter returns `view: 'system-profile'`. Typed and shortcut commands
 use the same path, even after `clean`.
+
+The cloned profile must use `white-space: normal`. Shell output uses
+`pre-wrap`, which would otherwise expand markup whitespace into blank gaps.
 
 The interpreter also supplies plain text lines for non-browser consumers.
 Edit the `.sysfetch` markup to change the visual profile; keep the fallback

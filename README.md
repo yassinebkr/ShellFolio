@@ -17,7 +17,7 @@ present your own work.
 - **Start:** an animated `./launch-interactive.sh` introduction appears on arrival.
 - **Navigate:** try `help`, `projects`, `skills`, `ls`, or `inspect lora`.
 - **Shortcuts:** Run, Clean and project navigation stay below the terminal.
-- **Keyboard:** Tab/→ completes commands; ↑/↓ navigates history.
+- **Keyboard:** type without clicking after the intro; Tab/→ completes commands and ↑/↓ navigates history.
 - **Copy:** select and copy output using the browser's standard controls.
 
 Selecting a shortcut prints the full command immediately, then shows its

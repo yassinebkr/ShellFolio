@@ -174,7 +174,7 @@ test('copyable output never triggers generic focus stealing', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
   assert.doesNotMatch(app, /body\.addEventListener\('click'/);
-  assert.doesNotMatch(app, /input\.focus\(/);
+  assert.match(app, /run\.focusWhenReady && document\.hasFocus\(\)/);
   assert.match(app, /window\.getSelection\(\)/);
   assert.match(app, /selection && !selection\.isCollapsed/);
   assert.match(css, /user-select: text/);
@@ -276,4 +276,27 @@ test('manual and shortcut neofetch reuse the same initial markup after clearing'
   assert.match(app, /initialSystemProfile\.cloneNode\(true\)/);
   assert.match(app, /output\.replaceChildren\(\)/);
   assert.match(css, /\.sysfetch-info dl/);
+});
+
+test('cloned neofetch uses normal whitespace while shell text preserves pre-wrap', () => {
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(css, /\.entry-result \{[^}]*white-space: pre-wrap;/s);
+  assert.match(css, /\.entry-result \.sysfetch \{ white-space: normal; \}/);
+  assert.match(app, /initialSystemProfile\.cloneNode\(true\)/);
+  assert.doesNotMatch(css, /\.entry-result \.sysfetch \{ white-space: pre-wrap; \}/);
+});
+
+test('automatic introduction restores keyboard focus without stealing selections', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(app, /focusWhenReady = false/);
+  assert.match(app, /focusWhenReady: true/);
+  assert.match(app, /const noSelection = !selection \|\| selection\.isCollapsed/);
+  assert.match(app, /run\.focusWhenReady && document\.hasFocus\(\)/);
+  assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /document\.addEventListener\('pointerdown'/);
+  assert.match(app, /activeLaunch\.focusWhenReady = false/);
+  assert.match(app, /activeLaunch\.pendingTyping \+= event\.key/);
+  assert.match(app, /cancelLaunch\('skip'\)/);
+  assert.match(app, /if \(!pendingShortcut\)/);
 });
