@@ -17,6 +17,8 @@ jobs:
           node-version: '22'
       - name: Test the virtual shell
         run: npm test
+      - name: Validate replay timing behavior
+        run: python3 -m unittest discover -s tests -p 'test_demo_timing.py' -v
       - name: Validate browser code
         run: |
           node --check app.js

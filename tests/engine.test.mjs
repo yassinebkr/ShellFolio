@@ -242,3 +242,16 @@ test('README replay keeps completed lines visible with no rewind or hidden short
   assert.match(generator, /LINE_HEIGHT = 21/);
   assert.match(generator, /render_quick_actions\(get_quick_actions\(\), rail_top\)/);
 });
+
+test('README animation timing uses command semantics, not line counts or fixed moments', () => {
+  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
+  const module = readFileSync(new URL('../tools/demo_timing.py', import.meta.url), 'utf8');
+  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
+  assert.match(generator, /plan_timeline\(\[entry\["command"\] for entry in transcript\]\)/);
+  assert.match(generator, /schedule\.final_prompt_at/);
+  assert.match(module, /COMMAND_PACING_MS/);
+  assert.doesNotMatch(module, /len\(.*rows/);
+  assert.doesNotMatch(generator, /visibility_animation\("lastPrompt", 18\.0\)/);
+  assert.match(svg, /animation:sequence0 5s/);
+  assert.match(svg, /animation:lastPrompt 5s/);
+});

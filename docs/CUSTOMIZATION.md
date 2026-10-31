@@ -134,7 +134,7 @@ the bottom rail synchronized with the website. GitHub displays embedded SVGs
 as images: the shortcut buttons shown in the README are only illustrations,
 while the website's shortcuts execute virtual commands.
 
-The SVG keeps a fixed **1080px width** and derives its height and shortcut position from the number of actual output rows. The animation plays once and stays on the completed frame, with only its cursor blinking. Regenerate with `npm run demo` after altering commands or the shortcut configuration.
+The SVG keeps a fixed **1080px width** and derives its height and shortcut position from the number of actual output rows. The animation plays once and stays on the completed frame, with only its cursor blinking. Its timings are computed by `tools/demo_timing.py` from the command category and length; **output row count controls only visual height**, not how quickly a result arrives. Update `COMMAND_PACING_MS` to adapt the pace, and run the Python timing tests. Regenerate with `npm run demo` after altering commands or the shortcut configuration.
 
 The related Python SVG generator for the GitHub profile README lives in
 a separate repository: https://github.com/yassinebkr/test

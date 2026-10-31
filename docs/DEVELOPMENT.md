@@ -140,7 +140,7 @@ The generator must preserve these display conventions:
   visual-only in the embedded README image. The live HTML buttons are
   interactive.
 
-The SVG now calculates its **height and shortcut rail position from the real transcript**. A 21px row height matches the site more closely, with no artificial blank lines between commands. The animation plays **once**, retains the completed transcript, and never rewinds typing from right to left. Only the cursor continues blinking. The shortcut strip is always inside the SVG viewport.
+The animation timetable is computed by `tools/demo_timing.py` from **command semantics**, not output line counts. Each command's simulated execution latency is short (`ls` and `cd` are near-instantaneous; `inspect` has a slightly longer beat), and the next prompt appears within roughly 0.1–0.2 seconds after the result. Typing duration depends on command length, with an upper cap. Only vertical positions depend on actual output row counts. The schedule is tested independently with `tests/test_demo_timing.py`.\n\nThe SVG now calculates its **height and shortcut rail position from the real transcript**. A 21px row height matches the site more closely, with no artificial blank lines between commands. The animation plays **once**, retains the completed transcript, and never rewinds typing from right to left. Only the cursor continues blinking. The shortcut strip is always inside the SVG viewport.
 
 Regenerate the asset using `npm run demo` and inspect the updated README
 image before committing. GitHub Actions regenerates the SVG and checks for an

@@ -3,7 +3,7 @@
 
 The command transcript comes from engine.js via a short Node.js subprocess,
 so the public README demonstration stays aligned with implemented behavior.
-Its SMIL-free CSS animations loop within one self-contained SVG document.
+Its SMIL-free CSS animations play once and retain a finished terminal image.
 """
 
 from __future__ import annotations
@@ -13,6 +13,8 @@ import json
 import subprocess
 from pathlib import Path
 
+from demo_timing import plan_timeline
+
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE = ROOT / "engine.js"
 OUT = ROOT / "assets/terminal-demo.svg"
@@ -21,7 +23,7 @@ PROMPT = "yassine@debian"
 FONT_SIZE = 14
 CHAR_W = 8.42
 BODY_X = 26
-DURATION = 25
+
 
 
 def svg_escape(text: str) -> str:
@@ -166,15 +168,12 @@ css: list[str] = [
     '.cursor{animation:cursorBlink 1.1s steps(1,end) infinite}',
 ]
 visuals: list[str] = []
-# Each animation plays only once; the final terminal state remains visible.
-# 21px approximates the actual 14px / 1.52 line-height of XFCE chrome.
-# A silent command consumes only its prompt row; no empty separator is added.
-timings = [
-    (0.4, 2.0, 2.2),
-    (6.0, 7.3, 7.4),
-    (8.4, 9.3, 9.4),
-    (12.1, 13.7, 13.9),
-]
+# The schedule is computed from command semantics, never from the output's
+# number of lines. ls/cd return promptly; inspect has a slightly longer beat.
+# Output row counts are used only to position subsequent prompts vertically.
+schedule = plan_timeline([entry["command"] for entry in transcript])
+DURATION = schedule.duration
+timings = [(cue.start, cue.stop, cue.reveal) for cue in schedule.commands]
 LINE_HEIGHT = 21
 next_baseline = 101
 sequences = []
@@ -198,7 +197,7 @@ for i, (entry, (baseline, start, end, reveal)) in enumerate(zip(transcript, sequ
         lines = "".join(line_svg(row_baselines[i] + offset * LINE_HEIGHT, line["parts"]) for offset, line in enumerate(entry["rows"]))
         visuals.append(f'<g class="{name}">{lines}</g>')
 
-visibility_animation("lastPrompt", 18.0)
+visibility_animation("lastPrompt", schedule.final_prompt_at)
 last_location = transcript[-1]["location"]
 last_x = BODY_X + len(f"{PROMPT}:{last_location}$ ") * CHAR_W
 visuals.append(
@@ -236,4 +235,4 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="{canvas_h
 </svg>'''
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(svg, encoding="utf-8")
-print(f'Wrote {OUT} ({len(svg)} characters), {sum(len(t["rows"]) for t in transcript)} rows from {len(COMMANDS)} actual commands')
+print(f'Wrote {OUT} ({len(svg)} characters), {sum(len(t["rows"]) for t in transcript)} rows, {DURATION}s schedule from {len(COMMANDS)} commands')
