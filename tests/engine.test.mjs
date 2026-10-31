@@ -187,7 +187,7 @@ test('quick-action command is displayed first, then its output is appended', () 
   assert.match(app, /const SHORTCUT_REPLY_DELAY_MS = 280/);
   assert.match(app, /const entry = displayCommand\(raw, engine\.location, \[\]\)/);
   assert.match(app, /await sleep\(reducedMotion\.matches \? 0 : SHORTCUT_REPLY_DELAY_MS/);
-  assert.match(app, /submitCommand\(raw, \{ existingEntry: entry \}\)/);
+  assert.match(app, /submitCommand\(raw, \{ existingEntry: entry, focusWhenReady: current\.focusWhenDone \}\)/);
   assert.match(app, /if \(response\.lines\.length\)/);
   assert.match(app, /existingEntry\.appendChild\(result\)/);
   assert.match(app, /button\.addEventListener\('click', \(\) => \{ void runQuickAction\(shortcut\.command\); \}\)/);
@@ -199,7 +199,7 @@ test('staged shortcuts can be canceled safely and do not animate typed character
   assert.match(app, /current\.controller\.abort\('interrupt'\)/);
   assert.match(app, /pendingShortcut !== current/);
   assert.match(app, /if \(activeLaunch\) cancelLaunch\('interrupt'\)/);
-  assert.match(app, /if \(!pendingShortcut\) \{/);
+  assert.match(app, /if \(activeLaunch \|\| pendingShortcut\) return false;/);
   assert.match(app, /if \(existingEntry && !response\.timeline\)/);
   assert.match(app, /reducedMotion\.matches \? 0 : SHORTCUT_REPLY_DELAY_MS/);
 });
@@ -292,7 +292,7 @@ test('automatic introduction restores keyboard focus without stealing selections
   assert.match(app, /focusWhenReady = false/);
   assert.match(app, /focusWhenReady: true/);
   assert.match(app, /if \(focus && document\.hasFocus\(\) && \(!selection \|\| selection\.isCollapsed\)\)/);
-  assert.match(app, /shouldFocus && document\.hasFocus\(\)/);
+  assert.match(app, /restorePrompt\(\{ focus: shouldFocus \}\)/);
   assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(app, /document\.addEventListener\('pointerdown'/);
   assert.match(app, /activeLaunch\.focusWhenReady = false/);
@@ -308,7 +308,7 @@ test('Escape explicitly returns focus to the prompt after skipping playback', ()
   assert.match(app, /const shouldFocus = run\.focusOnEscape \|\|/);
   assert.match(app, /const shouldFocus = run\.focusOnEscape \|\|/);
   assert.match(app, /input\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(app, /noSelection/);
+  assert.match(app, /\(!selection \|\| selection\.isCollapsed\)/);
   assert.match(app, /if \(pendingShortcut\) \{\s*cancelPendingShortcut\(\)/);
 });
 
