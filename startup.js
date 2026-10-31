@@ -1,13 +1,16 @@
 /**
- * Select the initial virtual terminal scene.
+ * Select the initial read-only terminal scene.
  *
- * The guided launcher is the default for both the normal GitHub Pages URL
- * and links from the profile README. The listing remains available for
- * diagnostics through the explicit `?view=listing` query parameter.
+ * On GitHub profile links (?run=launch), the animated SVG has already shown
+ * neofetch and ls. Reconstruct that listing before running the Bash demo so
+ * the interactive page continues from the image's last frame.
  *
- * Unrecognized query values do not trigger arbitrary commands.
+ * Direct visits still start the demo as before. A diagnostic listing route
+ * overrides both, and unknown query values never execute shell input.
  */
 export function initialScene(queryString = '') {
   const params = new URLSearchParams(queryString);
-  return params.get('view') === 'listing' ? 'listing' : 'launch';
+  if (params.get('view') === 'listing') return 'listing';
+  if (params.get('run') === 'launch') return 'profile';
+  return 'launch';
 }
