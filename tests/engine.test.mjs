@@ -80,7 +80,7 @@ test('live completions handle commands, project names, options and paths', () =>
   assert.deepEqual(shell.suggest('ls -l wor'), { replacement: 'ls -l workspace/', matches: ['workspace/'] });
   assert.deepEqual(shell.suggest('inspect lo'), { replacement: 'inspect lora', matches: ['lora'] });
   assert.deepEqual(shell.suggest('open cin'), { replacement: 'open cinemapi5', matches: ['cinemapi5'] });
-  assert.deepEqual(shell.suggest('c').matches, ['cd', 'cat', 'clear', 'contact']);
+  assert.deepEqual(shell.suggest('c').matches, ['cd', 'cat', 'clear', 'clean', 'contact']);
   assert.equal(shell.suggest('unknown').matches.length, 0);
   assert.deepEqual(shell.suggest('').matches, []);
   shell.execute('cd workspace/projects');
