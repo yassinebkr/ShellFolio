@@ -135,23 +135,30 @@ export class TerminalEngine {
   get location() { return cwdLabel(this.cwd); }
   get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'reset', 'exit']; }
 
-  complete(value) {
-    const match = value.match(/^(.*?)([^\s]*)$/);
-    const prefix = match?.[1] || '';
-    const last = match?.[2] || '';
+  /** Find candidates for live ghost text and shell-style Tab completion. */
+  suggest(value) {
+    if (!value || !value.trim()) return { replacement: value, matches: [] };
+    const parts = value.match(/^(.*?)([^\s]*)$/);
+    const prefix = parts?.[1] || '';
+    const last = parts?.[2] || '';
+    if (!last) return { replacement: value, matches: [] };
     const words = prefix.trim().split(/\s+/).filter(Boolean);
     let choices = [];
-    if (words.length === 0) choices = this.commands;
+    if (!words.length) choices = this.commands;
     else if (words[0] === 'inspect') choices = ['cinemapi5', 'lora', 'bigbrain'];
-    else if (words[0] === 'cd' || words[0] === 'ls' || words[0] === 'cat') {
-      const partialPath = last;
-      const before = partialPath.includes('/') ? partialPath.slice(0, partialPath.lastIndexOf('/') + 1) : '';
-      const directory = resolvePath(this.cwd, before || '.');
-      const filtered = children(directory) || [];
-      choices = filtered.map(x => before + x);
+    else if (words[0] === 'open') choices = [...safeLinks.keys()];
+    else if (['cd', 'ls', 'cat', 'tree'].includes(words[0])) {
+      const slash = last.lastIndexOf('/');
+      const before = slash >= 0 ? last.slice(0, slash + 1) : '';
+      const base = resolvePath(this.cwd, before || '.');
+      choices = (children(base) || []).map(item => before + item);
     }
-    const matches = choices.filter(x => x.toLowerCase().startsWith(last.toLowerCase()));
-    return matches.length === 1 ? `${prefix}${matches[0]}` : value;
+    const matches = choices.filter(option => option.toLowerCase().startsWith(last.toLowerCase()));
+    return { replacement: matches.length === 1 ? prefix + matches[0] : value, matches };
+  }
+
+  complete(value) {
+    return this.suggest(value).replacement;
   }
 
   /** Return structured lines; browser rendering always uses textContent. */
@@ -170,7 +177,7 @@ export class TerminalEngine {
     if (command === 'history') return { lines: this.history.slice(-30).map((cmd, i) => plain(`${String(Math.max(1, this.history.length - 29) + i).padStart(3)}  ${cmd}`)), cwd: this.cwd };
     if (command === 'exit') return { lines: lines('Session preserved. Type help to keep exploring.'), cwd: this.cwd };
     if (command === 'neofetch') return { lines: [line(segment('yassine@debian', 'green')), ...lines('OS         Debian GNU/Linux 13 (trixie)', 'Focus      Electronics / Embedded Systems', 'Toolchain  KiCad · Python · C · C++', 'Projects   CinemaPi5 · LoRa 45 km')], cwd: this.cwd };
-    if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clear / reset         Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
+    if (command === 'help') return { lines: [line(segment('ENGINEERING OS — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clear / reset         Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
     if (command === 'about') return { lines: [line(segment('YASSINE / ELECTRONICS & EMBEDDED SYSTEMS', 'cyan bold')), ...lines('Engineering across electronics, embedded Linux, software and digital fabrication.', 'Selected evidence: 45 km LoRa telemetry link and Raspberry Pi 5 cinema camera.', 'Approach: Design → Build → Test → Measure → Iterate.')], cwd: this.cwd };
     if (command === 'skills') return { lines: [line(segment('ENGINEERING DISCIPLINES', 'cyan bold')), ...groups.filter(x => x !== 'projects').map(name => line(segment(name.padEnd(14) + root[name].about, 'blue'))), plain('Tip: cd workspace/embedded && cat README.md')], cwd: this.cwd };
     if (command === 'projects') return { lines: [line(segment('PROJECTS / ENGINEERING EVIDENCE', 'cyan bold')), ...Object.entries(root.projects.children).map(([name, content]) => line(segment(name.padEnd(15), 'blue'), segment(content[1]))), plain('Tip: inspect cinemapi5   or   inspect lora')], cwd: this.cwd };

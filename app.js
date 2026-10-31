@@ -1,4 +1,4 @@
-/** DOM controller for ShellFolio's read-only virtual terminal interface. */
+/** Browser controller for ShellFolio's read-only terminal simulator. */
 import { TerminalEngine } from './engine.js';
 
 const engine = new TerminalEngine();
@@ -7,12 +7,17 @@ const output = $('output');
 const form = $('prompt-form');
 const input = $('command-input');
 const pwdLabel = $('pwd-label');
+const windowTitle = $('window-title');
 const body = $('terminal-body');
+const ghostPrefix = $('ghost-prefix');
+const ghostSuffix = $('ghost-suffix');
+const completionOptions = $('completion-options');
 let historyIndex = 0;
+let completionCandidates = [];
 
 function renderLine(content, container) {
-  const div = document.createElement('div');
-  div.className = 'line';
+  const row = document.createElement('div');
+  row.className = 'line';
   for (const part of content.parts) {
     const node = part.href ? document.createElement('a') : document.createElement('span');
     node.textContent = part.text;
@@ -22,9 +27,9 @@ function renderLine(content, container) {
       node.target = '_blank';
       node.rel = 'noopener noreferrer';
     }
-    div.appendChild(node);
+    row.appendChild(node);
   }
-  container.appendChild(div);
+  container.appendChild(row);
 }
 
 function displayCommand(command, location, lines) {
@@ -32,26 +37,40 @@ function displayCommand(command, location, lines) {
   entry.className = 'entry';
   const prompt = document.createElement('div');
   prompt.className = 'entry-command';
-  const name = document.createElement('span');
-  name.textContent = 'yassine@debian';
-  name.className = 'user';
-  const path = document.createElement('span');
-  path.className = 'path';
-  path.textContent = ':' + location;
-  const sep = document.createElement('span');
-  sep.className = 'cmd-sep';
-  sep.textContent = '$ ';
-  const cmd = document.createElement('span');
-  cmd.textContent = command;
-  prompt.append(name, path, sep, cmd);
+  for (const [value, kind] of [
+    ['yassine@debian', 'user'], [':' + location, 'path'], ['$ ', 'cmd-sep'], [command, '']
+  ]) {
+    const piece = document.createElement('span');
+    piece.textContent = value;
+    if (kind) piece.className = kind;
+    prompt.appendChild(piece);
+  }
   entry.appendChild(prompt);
   if (lines.length) {
     const result = document.createElement('div');
     result.className = 'entry-result';
-    lines.forEach(line => renderLine(line, result));
+    lines.forEach(value => renderLine(value, result));
     entry.appendChild(result);
   }
   output.appendChild(entry);
+}
+
+/** Keep the initial output in sync with the actual interpreter. */
+const initialSession = new TerminalEngine();
+const listing = initialSession.execute('ls -l ~/workspace');
+displayCommand('ls -l ~/workspace', '~', listing.lines);
+
+function refreshCompletion(showMatches = false) {
+  const typed = input.value;
+  // Completion applies to the end of the command line, like a regular shell.
+  const caretAtEnd = input.selectionStart === typed.length && input.selectionEnd === typed.length;
+  const suggestion = caretAtEnd ? engine.suggest(typed) : { replacement: typed, matches: [] };
+  completionCandidates = suggestion.matches;
+  const suffix = suggestion.matches.length === 1 ? suggestion.replacement.slice(typed.length) : '';
+  ghostPrefix.textContent = suffix ? typed : '';
+  ghostSuffix.textContent = suffix;
+  completionOptions.hidden = !(showMatches && suggestion.matches.length > 1);
+  completionOptions.textContent = completionOptions.hidden ? '' : suggestion.matches.slice(0, 8).join('    ');
 }
 
 function submitCommand(value = input.value) {
@@ -60,39 +79,65 @@ function submitCommand(value = input.value) {
   const location = engine.location;
   const response = engine.execute(raw);
   if (response.clear) {
-    // Keep the original neofetch scene, clear only submitted command history.
-    output.querySelectorAll('.entry').forEach(el => el.remove());
+    output.querySelectorAll('.entry').forEach(entry => entry.remove());
   } else {
     displayCommand(raw, location, response.lines);
   }
   pwdLabel.textContent = ':' + engine.location;
+  windowTitle.textContent = `Terminal - yassine@debian: ${engine.location}`;
   historyIndex = engine.history.length;
   input.value = '';
+  refreshCompletion();
   input.focus();
   body.scrollTop = body.scrollHeight;
 }
 
 form.addEventListener('submit', e => { e.preventDefault(); submitCommand(); });
-input.addEventListener('keydown', e => {
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    historyIndex = Math.max(0,historyIndex - 1);
+input.addEventListener('input', () => refreshCompletion());
+input.addEventListener('click', () => refreshCompletion());
+input.addEventListener('keyup', event => {
+  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) refreshCompletion();
+});
+input.addEventListener('keydown', event => {
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    historyIndex = Math.max(0, historyIndex - 1);
     input.value = engine.history[historyIndex] || '';
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    historyIndex = Math.min(engine.history.length,historyIndex + 1);
+    input.setSelectionRange(input.value.length, input.value.length);
+    refreshCompletion();
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    historyIndex = Math.min(engine.history.length, historyIndex + 1);
     input.value = engine.history[historyIndex] || '';
-  } else if (e.key === 'Tab') {
-    e.preventDefault();
-    input.value = engine.complete(input.value);
-  } else if (e.key.toLowerCase() === 'l' && e.ctrlKey) {
-    e.preventDefault(); submitCommand('clear');
+    input.setSelectionRange(input.value.length, input.value.length);
+    refreshCompletion();
+  } else if (event.key === 'Tab') {
+    event.preventDefault();
+    const next = engine.suggest(input.value);
+    if (next.matches.length === 1) {
+      input.value = next.replacement;
+      input.setSelectionRange(input.value.length, input.value.length);
+      refreshCompletion();
+    } else {
+      refreshCompletion(true);
+    }
+  } else if (event.key === 'ArrowRight') {
+    if (input.selectionStart === input.value.length && input.selectionEnd === input.value.length) {
+      const next = engine.suggest(input.value);
+      if (next.matches.length === 1 && next.replacement !== input.value) {
+        event.preventDefault();
+        input.value = next.replacement;
+        refreshCompletion();
+      }
+    }
+  } else if (event.key.toLowerCase() === 'l' && event.ctrlKey) {
+    event.preventDefault();
+    submitCommand('clear');
   }
 });
-document.querySelectorAll('[data-command]').forEach(btn => btn.addEventListener('click', () => submitCommand(btn.dataset.command)));
-body.addEventListener('click', event => {
-  // Reading links and selecting output remain available without focus changes.
-  if (event.target.closest('a,button,input')) return;
+body.addEventListener('click', e => {
+  if (e.target.closest('a,button,input')) return;
   input.focus();
 });
-input.focus({preventScroll:true});
+refreshCompletion();
+input.focus({ preventScroll: true });

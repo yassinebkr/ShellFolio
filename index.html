@@ -2,81 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101215">
-  <meta name="description" content="ShellFolio — explore projects, skills and engineering work through an interactive Debian/XFCE-style virtual terminal.">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#151515">
+  <meta name="description" content="ShellFolio — explore electronics, embedded systems, and engineering projects in a Debian/XFCE-inspired virtual terminal.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>ShellFolio · Interactive Terminal Portfolio</title>
+  <title>ShellFolio — Terminal</title>
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <div class="site-shell">
-    <header class="site-head">
-      <a href="https://github.com/yassinebkr/ShellFolio" class="brand" rel="noopener noreferrer" aria-label="View ShellFolio source repository">
-        <span class="brand-glyph">~/</span>
-        <span><strong>ShellFolio</strong><span class="subdued"> / terminal portfolio</span></span>
-      </a>
-      <span class="head-label"><span class="status-dot"></span> INTERACTIVE TERMINAL</span>
+  <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
+    <header class="window-bar">
+      <svg class="terminal-icon" width="19" height="19" viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="17" height="17" rx="2" fill="#24282b" stroke="#aeb5bd" stroke-width="1"/>
+        <path d="M5 6.1 9.5 10 5 13.9M10.8 14h4.2" fill="none" stroke="#e4e8ec" stroke-width="1.55" stroke-linecap="square" stroke-linejoin="miter"/>
+      </svg>
+      <span class="window-title" id="window-title">Terminal - yassine@debian: ~</span>
+      <span class="window-controls" aria-hidden="true">
+        <span class="minimize"></span><span class="maximize"></span><span class="close"></span>
+      </span>
     </header>
+    <!-- XFCE-style menu labels are visual chrome; shell commands belong to the prompt. -->
+    <div class="menu-bar" aria-hidden="true">
+      <span>File</span><span>Edit</span><span>View</span><span>Terminal</span><span>Tabs</span><span>Help</span>
+    </div>
 
-    <main class="terminal" id="terminal" aria-label="Interactive Linux-style portfolio terminal">
-      <div class="window-bar">
-        <div class="terminal-mark" aria-hidden="true">
-          <svg width="19" height="19" viewBox="0 0 19 19"><rect x="1" y="1" width="17" height="17" rx="2" fill="#21252a" stroke="#bcc1c7"/><path d="M5.2 5.8L9 9.4l-3.8 3.6M10.4 13.5h4.4" fill="none" stroke="#e6e9eb" stroke-width="1.5"/></svg>
-        </div>
-        <span class="window-title">Terminal - yassine@debian: ~</span>
-        <div class="window-controls" aria-hidden="true"><span class="minimize"></span><span class="maximize"></span><span class="close"></span></div>
+    <div class="terminal-body" id="terminal-body">
+      <div id="output" role="log" aria-label="Terminal output" aria-live="polite" aria-relevant="additions text">
+        <div class="intro-line"><span class="user">yassine@debian</span><span class="path">:~</span><span class="cmd-sep">$ </span><span>neofetch</span></div>
+        <section class="sysfetch" aria-label="Engineering system profile">
+          <div class="sysfetch-logo"><img src="./assets/debian.svg" alt="Debian swirl"></div>
+          <div class="sysfetch-info">
+            <div class="sys-user">yassine@debian</div>
+            <div class="rule">------------------------------</div>
+            <dl>
+              <div><dt>OS:</dt><dd>Debian GNU/Linux 13 (trixie)</dd></div>
+              <div><dt>Shell:</dt><dd>bash</dd></div>
+              <div><dt>DE:</dt><dd>Xfce</dd></div>
+              <div><dt>Terminal:</dt><dd>xfce4-terminal</dd></div>
+              <div><dt>Focus:</dt><dd>Electronics / Embedded Systems</dd></div>
+              <div><dt>Toolchain:</dt><dd>KiCad / Python / C / C++</dd></div>
+              <div><dt>Projects:</dt><dd>CinemaPi5 / LoRa telemetry</dd></div>
+            </dl>
+            <div class="palette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </section>
       </div>
-      <nav class="menu-bar" aria-label="Terminal menu">
-        <button type="button" data-command="ls -l workspace">File</button>
-        <button type="button" data-command="history">Edit</button>
-        <button type="button" data-command="clear">View</button>
-        <button type="button" data-command="neofetch">Terminal</button>
-        <button type="button" data-command="projects">Tabs</button>
-        <button type="button" data-command="help">Help</button>
-      </nav>
 
-      <div class="terminal-body" id="terminal-body" tabindex="-1">
-        <div id="output" role="log" aria-label="Terminal command output" aria-live="polite" aria-relevant="additions text">
-          <div class="intro-line"><span class="user">yassine@debian</span><span class="path">:~</span><span class="cmd-sep">$</span> <span class="intro-command">neofetch</span></div>
-          <section class="sysfetch" aria-label="Engineering system profile">
-            <div class="sysfetch-logo"><img src="./assets/debian.svg" alt="Debian swirl" loading="eager"></div>
-            <div class="sysfetch-info">
-              <strong class="sys-user">yassine@debian</strong>
-              <span class="rule">------------------------------</span>
-              <div><b>OS:</b><span>Debian GNU/Linux 13 (trixie)</span></div>
-              <div><b>Shell:</b><span>bash</span></div>
-              <div><b>DE:</b><span>Xfce</span></div>
-              <div><b>Terminal:</b><span>xfce4-terminal</span></div>
-              <div><b>Focus:</b><span>Electronics / Embedded Systems</span></div>
-              <div><b>Toolchain:</b><span>KiCad / Python / C / C++</span></div>
-              <div><b>Projects:</b><span>CinemaPi5 / LoRa telemetry</span></div>
-              <div class="palette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            </div>
-          </section>
-          <div class="intro-comment muted"># Explore the workspace. Click a suggestion or type a command.</div>
+      <form id="prompt-form" autocomplete="off" novalidate>
+        <label for="command-input" class="shell-prompt"><span class="user">yassine@debian</span><span id="pwd-label" class="path">:~</span><span class="cmd-sep">$ </span></label>
+        <div class="input-wrap">
+          <div class="completion-ghost" aria-hidden="true"><span id="ghost-prefix"></span><span id="ghost-suffix"></span></div>
+          <input id="command-input" name="command" type="text" aria-label="Shell command" autofocus autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="240" aria-describedby="shell-help">
         </div>
-
-        <form id="prompt-form" autocomplete="off" novalidate>
-          <label for="command-input" class="shell-prompt"><span class="user">yassine@debian</span><span id="pwd-label" class="path">:~</span><span class="cmd-sep">$</span></label>
-          <div class="input-wrap"><input id="command-input" name="command" type="text" aria-label="Linux terminal command" autofocus autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="help" maxlength="240"></div>
-          <button type="submit" class="run-button" aria-label="Execute command">↵</button>
-        </form>
-        <div class="quick-commands" aria-label="Suggested commands">
-          <span class="quick-label">TRY</span>
-          <button data-command="help">help</button>
-          <button data-command="ls -l workspace">ls -l workspace</button>
-          <button data-command="skills">skills</button>
-          <button data-command="projects">projects</button>
-          <button data-command="inspect lora">inspect lora</button>
-          <button data-command="inspect cinemapi5">inspect cinemapi5</button>
-        </div>
-      </div>
-      <footer class="terminal-footer"><span><span class="status-dot"></span> ready <span class="faint">· local session</span></span><span class="faint">↑↓ history &nbsp; Tab complete &nbsp; Ctrl+L clear</span></footer>
-    </main>
-    <footer class="site-footer"><span>Inspired by <a href="https://github.com/AienTech/aientech" target="_blank" rel="noopener noreferrer">AienTech</a>. Built by Yassine.</span><a href="https://github.com/yassinebkr" rel="noopener noreferrer">GitHub profile ↗</a></footer>
-  </div>
-  <noscript><p class="noscript">Enable JavaScript to explore ShellFolio. <a href="https://github.com/yassinebkr">View the GitHub profile</a>.</p></noscript>
+      </form>
+      <div id="completion-options" class="completion-options" aria-live="polite" hidden></div>
+      <p id="shell-help" class="sr-only">Type help for commands. Tab accepts a suggestion. Arrow up and down navigate history. Enter executes.</p>
+    </div>
+  </main>
+  <noscript><p class="noscript">JavaScript is required for the virtual terminal.</p></noscript>
 </body>
 </html>

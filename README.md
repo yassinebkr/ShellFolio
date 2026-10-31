@@ -1,41 +1,42 @@
 # ShellFolio
 
-**Your portfolio. Your terminal. Your rules.**
+An interactive, Debian/XFCE-style terminal portfolio running in the browser.
 
-An interactive, customizable Linux-style terminal experience for showcasing projects, skills, and experience directly in the browser.
+[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/)
 
-ShellFolio currently provides a read-only virtual filesystem and a curated set of simulated commands, styled after Debian and XFCE Terminal. The browser handles navigation, command history, tab completion and interactive project exploration.
+[![ShellFolio virtual terminal demonstration](assets/demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
-## Live demo
+The animation above replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS.
 
-https://yassinebkr.github.io/ShellFolio/
+## Features
 
-GitHub Pages must be enabled for the public repository at **Settings → Pages → Deploy from a branch → main → /(root)**. The URL becomes active after GitHub completes its first deployment.
+ShellFolio provides a read-only virtual filesystem with `ls -l`, `cd`, `cat`, `tree`, `pwd`, `projects`, and `inspect`, plus shell-style history and live completion suggestions. Type `pr` to see `projects` suggested inline, then press **Tab** or **→** to accept it. The responsive interface follows the visual conventions of XFCE Terminal on Debian 13.
 
-## How to explore
+The simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
 
-Try `help`, `ls -l workspace`, `cd workspace/projects`, `cat README.md`, `tree`, `skills`, `projects`, or `inspect lora`. Use Tab for completion, ↑/↓ for history, and Ctrl+L for clearing terminal output.
+## Run locally
 
-The shell is a portfolio simulation: commands operate on documented sample data in the browser and do not execute operating-system programs.
+```bash
+python3 -m http.server 8000
+```
 
-## Architecture
+Visit <http://localhost:8000/>. Automated tests and SVG regeneration use Node.js and Python 3:
 
-The public repository contains only the deployable static website:
+```bash
+npm test
+npm run demo
+```
 
-- `index.html` — semantic browser interface
-- `style.css` — Debian/XFCE-inspired presentation
-- `app.js` — browser interaction and command rendering
-- `engine.js` — deterministic read-only virtual shell
-- `assets/debian.svg` — Debian artwork
+The deployable site is at the repository root (`index.html`, `style.css`, `app.js`, `engine.js`, `assets/`). The unit tests, demonstration generator, CI configuration, and documentation live alongside that site **in this repository**. GitHub Pages publishes `main` / `(root)`.
 
-More extensive development tooling, scripts and documentation remain in the private development repository while the project evolves.
+Read [Development & architecture](docs/DEVELOPMENT.md) for the design and testing approach.
 
-## Acknowledgements
+## Related project
 
-**Special thanks to [AienTech](https://github.com/AienTech)** and the beautiful animated terminal in [AienTech/aientech](https://github.com/AienTech/aientech), which inspired the original GitHub README terminal experiment. ShellFolio's interactive web interface and virtual shell were developed independently.
+The [animated SVG terminal for a GitHub profile](https://github.com/yassinebkr/test) is a separate Python-generated project. Its current source repository is private and is planned for public release under a new name. ShellFolio focuses exclusively on the interactive browser experience.
 
-The Debian swirl artwork is derived from [Simple Icons' Debian vector](https://github.com/simple-icons/simple-icons/blob/develop/icons/debian.svg). For branding, copyright and licensing details, see the [Debian logo guidelines](https://www.debian.org/logos/).
+## Credits
 
-## Project status
+This project grew out of a GitHub terminal profile experiment inspired by [AienTech](https://github.com/AienTech) and the [AienTech/aientech](https://github.com/AienTech/aientech) repository. The original animated SVG work was an inspiration; ShellFolio's browser interface and virtual shell are independent implementations.
 
-ShellFolio is an evolving personal portfolio prototype, with a reusable terminal interface as a longer-term goal.
+The Debian swirl vector is derived from [Simple Icons — Debian](https://github.com/simple-icons/simple-icons/blob/develop/icons/debian.svg). See the [Debian logo guidelines](https://www.debian.org/logos/) and [asset credits](docs/CREDITS.md).
