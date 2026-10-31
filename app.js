@@ -1,6 +1,6 @@
 /** Browser controller for ShellFolio's read-only terminal simulator. */
-import { TerminalEngine } from './engine.js?v=14';
-import { initialScene } from './startup.js';
+import { TerminalEngine } from './engine.js?v=15';
+import { initialScene } from './startup.js?v=15';
 import { quickActions, repositoryLink } from './portfolio.config.js?v=14';
 
 const engine = new TerminalEngine();
@@ -234,19 +234,20 @@ function displayCommand(command, location, lines) {
 }
 
 /**
- * Run the authored introduction for every normal visit, not only for
- * profile-README links carrying ?run=launch. Display and type the Bash-style
- * invocation before progressively rendering its virtual output.
- *
- * An explicit ?view=listing remains available to inspect the original
- * directory listing without initiating the guided introduction.
+ * Preserve continuity from the GitHub profile's final SVG frame:
+ * neofetch is in the initial HTML, then the existing virtual ls command
+ * reconstructs the directory listing before the Bash launch is typed.
+ * Direct visits keep the original animated intro, while ?view=listing
+ * remains a non-animated diagnostic mode.
  */
 renderQuickActions();
-if (initialScene(window.location.search) === 'launch') {
-  submitCommand('./launch-interactive.sh', { typeCommand: true, focusWhenReady: true });
-} else {
+const scene = initialScene(window.location.search);
+if (scene !== 'launch') {
   const listing = engine.execute('ls -l ~/workspace');
   displayCommand('ls -l ~/workspace', '~', listing.lines);
+}
+if (scene !== 'listing') {
+  submitCommand('./launch-interactive.sh', { typeCommand: true, focusWhenReady: true });
 }
 
 /**
