@@ -136,7 +136,7 @@ function tokenize(input) {
 export class TerminalEngine {
   constructor() { this.cwd = home; this.history = []; }
   get location() { return cwdLabel(this.cwd); }
-  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'reset', 'exit', './launch-interactive.sh', ...Object.keys(presetResponses)]; }
+  get commands() { return ['help', 'ls', 'pwd', 'cd', 'cat', 'tree', 'about', 'whoami', 'skills', 'projects', 'inspect', 'open', 'history', 'neofetch', 'clear', 'clean', 'reset', 'exit', 'run', './launch-interactive.sh', ...Object.keys(presetResponses)]; }
 
   /** Find candidates for live ghost text and shell-style Tab completion. */
   suggest(value) {
@@ -174,7 +174,7 @@ export class TerminalEngine {
     if (parsed.error) return { lines: err(parsed.error), cwd: this.cwd };
     const [command, ...args] = parsed.tokens;
     const value = args.join(' ');
-    if (['clear', 'reset'].includes(command)) return { lines: [], clear: true, cwd: this.cwd };
+    if (['clear', 'clean', 'reset'].includes(command)) return { lines: [], clear: true, cwd: this.cwd };
     if (Object.hasOwn(presetResponses, command)) {
       if (args.length) return { lines: err(command + ': unexpected arguments'), cwd: this.cwd };
       return { lines: presetResponses[command].lines.map(plain), cwd: this.cwd };
@@ -183,13 +183,13 @@ export class TerminalEngine {
     if (command === 'whoami') return { lines: lines('yassine'), cwd: this.cwd };
     if (command === 'history') return { lines: this.history.slice(-30).map((cmd, i) => plain(`${String(Math.max(1, this.history.length - 29) + i).padStart(3)}  ${cmd}`)), cwd: this.cwd };
     if (command === 'exit') return { lines: lines('Session preserved. Type help to keep exploring.'), cwd: this.cwd };
-    if (command === './launch-interactive.sh') {
-      if (args.length) return { lines: err('launch-interactive.sh: unexpected arguments'), cwd: this.cwd };
+    if (command === './launch-interactive.sh' || command === 'run') {
+      if (args.length) return { lines: err(command + ': unexpected arguments'), cwd: this.cwd };
       const lines = resolvedLaunchLines().map(item => line(segment(item.text, item.style)));
       return { lines, timeline: LAUNCH_STEPS, cwd: this.cwd };
     }
     if (command === 'neofetch') return { lines: [line(segment('yassine@debian', 'green')), ...lines('OS         Debian GNU/Linux 13 (trixie)', 'Focus      Electronics / Embedded Systems', 'Toolchain  KiCad · Python · C · C++', 'Projects   CinemaPi5 · LoRa 45 km')], cwd: this.cwd };
-    if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  ./launch-interactive.sh  Replay the guided introduction', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clear / reset         Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
+    if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  run / ./launch-interactive.sh  Replay the introduction', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clean / clear / reset  Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
     if (command === 'about') return { lines: [line(segment('YASSINE / ELECTRONICS & EMBEDDED SYSTEMS', 'cyan bold')), ...lines('Engineering across electronics, embedded Linux, software and digital fabrication.', 'Selected evidence: 45 km LoRa telemetry link and Raspberry Pi 5 cinema camera.', 'Approach: Design → Build → Test → Measure → Iterate.')], cwd: this.cwd };
     if (command === 'skills') return { lines: [line(segment('ENGINEERING DISCIPLINES', 'cyan bold')), ...groups.filter(x => x !== 'projects').map(name => line(segment(name.padEnd(14) + root[name].about, 'blue'))), plain('Tip: cd workspace/embedded && cat README.md')], cwd: this.cwd };
     if (command === 'projects') return { lines: [line(segment('PROJECTS / ENGINEERING EVIDENCE', 'cyan bold')), ...Object.entries(root.projects.children).map(([name, content]) => line(segment(name.padEnd(15), 'blue'), segment(content[1]))), plain('Tip: inspect cinemapi5   or   inspect lora')], cwd: this.cwd };

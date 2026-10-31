@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { TerminalEngine, resolvePath, tokenize } from '../engine.js';
 import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 import { initialScene } from '../startup.js';
-import { quickActions, presetResponses, menuGroups } from '../portfolio.config.js';
+import { quickActions, presetResponses } from '../portfolio.config.js';
+import { readFileSync } from 'node:fs';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -135,16 +136,30 @@ test('custom visitor shortcuts and predefined responses run through the same she
   assert.ok(Object.hasOwn(presetResponses, 'contact'));
 });
 
-test('all visible menu items have a known actionable handler', () => {
-  const known = new Set(['restart','workspace','copy','font-up','font-down','font-reset',
-    'intro','clear','new-tab','help','guide']);
-  assert.deepEqual(menuGroups.map(group => group.label),
-    ['File','Edit','View','Terminal','Tabs','Help']);
-  for (const group of menuGroups) {
-    assert.ok(group.actions.length > 0);
-    for (const action of group.actions) {
-      assert.ok(known.has(action.id), 'Unimplemented menu action: ' + action.id);
-      assert.ok(action.label.length > 0);
-    }
-  }
+
+test('Run and Clean shortcuts execute virtual commands', () => {
+  const shell = new TerminalEngine();
+  const run = quickActions.find(action => action.label === 'Run');
+  const clean = quickActions.find(action => action.label === 'Clean');
+  assert.equal(run?.command, './launch-interactive.sh');
+  assert.equal(clean?.command, 'clean');
+  assert.ok(shell.execute(run.command).timeline?.length > 0);
+  assert.ok(shell.execute('run').timeline?.length > 0);
+  assert.equal(shell.execute(clean.command).clear, true);
+  assert.equal(shell.execute('clear').clear, true);
+  assert.equal(shell.execute('reset').clear, true);
+  assert.ok(shell.suggest('cle').matches.includes('clean'));
+});
+
+test('XFCE chrome is inert and script lifecycle controls Bash prompt', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  assert.match(html, /class="menu-bar" aria-hidden="true"/);
+  assert.doesNotMatch(app, /renderMenus|runMenuAction/);
+  assert.match(app, /form[.]hidden = true/);
+  assert.match(app, /form[.]hidden = false/);
+  assert.match(app, /output[.]replaceChildren[(][)]/);
+  assert.match(app, /document[.]addEventListener[(]'keydown'/);
+  assert.ok(css.includes('#prompt-form[hidden] { display: none; }'));
 });

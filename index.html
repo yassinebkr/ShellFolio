@@ -7,8 +7,8 @@
   <meta name="description" content="ShellFolio — explore electronics, embedded systems, and engineering projects in a Debian/XFCE-inspired virtual terminal.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ShellFolio — Terminal</title>
-  <link rel="stylesheet" href="./style.css?v=7">
-  <script type="module" src="./app.js?v=7"></script>
+  <link rel="stylesheet" href="./style.css?v=8">
+  <script type="module" src="./app.js?v=8"></script>
 </head>
 <body>
   <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
@@ -22,8 +22,8 @@
         <span class="minimize"></span><span class="maximize"></span><span class="close"></span>
       </span>
     </header>
-    <!-- Functional menus are populated from portfolio.config.js. -->
-    <nav class="menu-bar" id="menu-bar" aria-label="Terminal menu"></nav>
+    <!-- Menu labels are decorative XFCE chrome, not interactive controls. -->
+    <div class="menu-bar" aria-hidden="true"><span>File</span><span>Edit</span><span>View</span><span>Terminal</span><span>Tabs</span><span>Help</span></div>
 
     <div class="terminal-body" id="terminal-body">
       <div id="output" role="log" aria-label="Terminal output" aria-live="polite" aria-relevant="additions text">

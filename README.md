@@ -12,13 +12,13 @@ The animation above replays four commands through ShellFolio's **real virtual co
 
 ShellFolio provides a read-only virtual filesystem with `ls -l`, `cd`, `cat`, `tree`, `pwd`, `projects`, and `inspect`, plus shell-style history and live completion suggestions. Type `pr` to see `projects` suggested inline, then press **Tab** or **→** to accept it. The responsive interface follows the visual conventions of XFCE Terminal on Debian 13.
 
-The normal website URL and the README launcher (`?run=launch`) both start by typing and running the simulated command `./launch-interactive.sh`; it displays a short introduction, while the on-screen suggestions let visitors explore without typing. No real shell script is executed. The launcher streams its output as a short, interruptible terminal sequence, with in-place ASCII progress indicators and incremental text. Press **Esc** to show the remaining output immediately or **Ctrl+C** to interrupt. Reduced-motion preferences show the results without animation. The original file listing can still be opened via [`?view=listing`](https://yassinebkr.github.io/ShellFolio/?view=listing).
+The normal website URL and the README launcher (`?run=launch`) both start by typing and running the simulated command `./launch-interactive.sh`; it displays a short introduction, while the on-screen suggestions let visitors explore without typing. No real shell script is executed. The launcher streams its output as a short, interruptible terminal sequence, with in-place ASCII progress indicators and incremental text. The active Bash prompt appears only when the script completes or is interrupted. Press **Esc** to show the remaining output immediately or **Ctrl+C** to interrupt. Reduced-motion preferences show the results without animation. The original file listing can still be opened via [`?view=listing`](https://yassinebkr.github.io/ShellFolio/?view=listing).
 
 The simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
 
 ## Customization
 
-To adapt the visitor shortcuts, their predefined responses, or the XFCE menus, edit `portfolio.config.js`. The [customization guide](docs/CUSTOMIZATION.md) walks through the setup and validation.
+To adapt **Run**, **Clean**, other suggested commands and predefined responses, edit `portfolio.config.js`. XFCE menu labels remain visual-only. The [customization guide](docs/CUSTOMIZATION.md) walks through the setup and validation.
 
 ## Run locally
 

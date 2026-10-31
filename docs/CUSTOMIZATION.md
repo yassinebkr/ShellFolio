@@ -4,8 +4,8 @@ ShellFolio is a read-only virtual terminal. You can adapt the content and
 interaction paths without implementing a new renderer or running a server.
 
 The configuration entry point is **`portfolio.config.js`**. The application
-reads its definitions at startup; `app.js` builds the menus and visitor
-shortcuts automatically. GitHub Pages serves this as a static site.
+reads its definitions at startup; `app.js` builds the visitor
+shortcuts automatically. The XFCE menu labels are decorative. GitHub Pages serves this as a static site.
 
 ## 1. Decide what a visitor should discover
 
@@ -62,22 +62,20 @@ no arguments; they never execute JavaScript, Bash, HTTP calls or system
 commands. External URLs in ordinary response strings display as text.
 Only the interpreter's curated links are clickable.
 
-## 3. Configure the XFCE-inspired menus
+## 3. Run and Clean
 
-The `menuGroups` array in `portfolio.config.js` defines the File, Edit,
-View, Terminal, Tabs and Help menus. Each entry uses a known **action ID**
-implemented in `app.js`, rather than an arbitrary shell command.
+The persistent quick-action rail starts with **Run** and **Clean**. Run replays
+the simulated `./launch-interactive.sh`; Clean executes the virtual `clean`
+command. `clean`, `clear`, and `reset` empty the entire visible terminal,
+including its initial neofetch output, without changing the working directory.
 
-Supported IDs: `restart`, `workspace`, `copy`, `font-up`,
-`font-down`, `font-reset`, `intro`, `clear`, `new-tab`,
-`help`, and `guide`.
+While a script runs, the live Bash prompt is hidden until completion or
+interruption. The quick-action rail stays visible. Selecting a quick action
+interrupts the current animation; Escape finishes it, and Ctrl+C cancels it.
 
-The menus are interactive on the website, including hover, keyboard focus,
-and accessible dropdown controls. They are graphical only in the animated
-SVG preview: GitHub embeds the SVG as an image, so its menus cannot operate.
-
-Keep the menu behavior aligned with its labels. The Tabs action opens a
-real browser tab; it does not pretend to implement a multi-PTY terminal.
+The File/Edit/View/Terminal/Tabs/Help menu labels and window controls are
+**visual-only**, intentionally without click handlers or misleading actions.
+The command prompt and quick-action buttons provide real interaction.
 
 ## 4. Personalize project evidence and the introductory script
 
@@ -126,8 +124,8 @@ python3 -m http.server 8000
 ```
 
 Inspect `http://localhost:8000/` in a browser. Check both desktop and
-mobile widths. Try the quick actions, menus, clipboard copy, Tab
-completion, keyboard navigation and introductory replay.
+mobile widths. Try Run, Clean, other quick actions, Tab completion, keyboard navigation
+and introductory replay. Confirm the XFCE menu chrome is inert.
 
 GitHub Actions validates the source and demo on every push. GitHub Pages
 publishes the repository's `main` branch from `/(root)`.
