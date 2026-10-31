@@ -1,48 +1,68 @@
 # ShellFolio
 
-An interactive, Debian/XFCE-style terminal portfolio running in the browser.
+**Your portfolio. Your terminal. Your rules.**
 
-[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/) · [**Read the launch script**](launch-script.js)
+A customizable Debian/XFCE-style portfolio in the browser. A curated virtual
+shell, not a real Linux terminal.
 
-[![ShellFolio virtual terminal demonstration](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
+[Open ShellFolio](https://yassinebkr.github.io/ShellFolio/) ·
+[Read the launch sequence](launch-script.js)
 
-The animation plays once and holds the complete terminal output. Command replies and subsequent prompts use short, command-aware delays rather than the former fixed multi-second waits. It also shows the **predefined visitor shortcuts** from the site. The SVG is a visual preview; the shortcuts become clickable on the live page. It replays four commands through ShellFolio's **real virtual command interpreter**: `ls -l ~/workspace`, `cd workspace/projects`, `ls`, and `inspect lora`. It is generated from actual interpreter responses by [`tools/make_demo.py`](tools/make_demo.py), and contains only SVG/CSS. The XFCE menu labels are plain text, without button borders. Each successive shell prompt follows the previous command's output on the next terminal row, without an extra blank line.
+[![Animated ShellFolio terminal with project commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
-## Features
+*The SVG is a non-interactive preview. Click it to use the live terminal.*
 
-ShellFolio provides a read-only virtual filesystem with `ls -l`, `cd`, `cat`, `tree`, `pwd`, `projects`, and `inspect`, plus shell-style history and live completion suggestions. Type `pr` to see `projects` suggested inline, then press **Tab** or **→** to accept it. The responsive interface follows the visual conventions of XFCE Terminal on Debian 13.
+## Explore
 
-The normal website URL and the README launcher (`?run=launch`) both start by typing and running the simulated command `./launch-interactive.sh`; it displays a short introduction, while the on-screen suggestions let visitors explore without typing. No real shell script is executed. The launcher streams its output as a short, interruptible terminal sequence, with in-place ASCII progress indicators and incremental text. The active Bash prompt appears only when the script completes or is interrupted. Press **Esc** to show the remaining output immediately or **Ctrl+C** to interrupt. Reduced-motion preferences show the results without animation. The original file listing can still be opened via [`?view=listing`](https://yassinebkr.github.io/ShellFolio/?view=listing).
+- **Start:** a short simulated `./launch-interactive.sh` introduction plays on arrival.
+- **Navigate:** type `help`, `projects`, `skills`, `ls`, or `inspect lora`.
+- **Use shortcuts:** Run, Clean and project links sit below the output.
+- **Use a keyboard:** Tab/→ complete commands; ↑/↓ browse history.
+- **Copy output:** select text normally, then use your browser's copy action.
 
-Clicking a shortcut shows its complete shell command immediately, then reveals the response after a brief pause, as though Enter had just been pressed. Manual commands still run immediately.\n\nThe simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
+Shortcuts display their full command immediately, then reveal its result after
+a **280 ms** pause. The introductory script has its own progressive animation.
 
-## Customization
+## Make it yours
 
-To adapt **Run**, **Clean**, other suggested commands and predefined responses, edit `portfolio.config.js`. The shortcut rail uses understated text links rather than boxed badges; XFCE menu labels remain visual-only. The [customization guide](docs/CUSTOMIZATION.md) walks through the setup and validation.
+Edit [`portfolio.config.js`](portfolio.config.js) to change the shortcuts
+and add read-only predefined responses. The
+[customization guide](docs/CUSTOMIZATION.md) walks through each step.
 
-## Run locally
+The README's SVG is generated with [`tools/make_demo.py`](tools/make_demo.py).
+It replays commands through the same JavaScript interpreter as the website.
+Timing is configured in [`tools/demo_timing.py`](tools/demo_timing.py):
+a blank prompt appears shortly after each response, with a short pause before
+the next command is typed.
+
+## Develop
 
 ```bash
 python3 -m http.server 8000
+# Open http://localhost:8000/
 ```
 
-Visit <http://localhost:8000/>. Automated tests and SVG regeneration use Node.js and Python 3:
+To run the tests and regenerate the README SVG:
 
 ```bash
 npm test
+python3 -m unittest discover -s tests -p 'test_demo_timing.py'
 npm run demo
 ```
 
-The deployable site is at the repository root (`index.html`, `style.css`, `app.js`, `engine.js`, `assets/`). The unit tests, demonstration generator, CI configuration, and documentation live alongside that site **in this repository**. GitHub Pages publishes `main` / `(root)`.
+The site runs entirely in the browser, without a backend shell. GitHub Pages
+publishes the public repository's `main` branch from the root.
 
-Read [Development & architecture](docs/DEVELOPMENT.md) for system and command-flow diagrams, the SVG build pipeline, and testing. Terminal output supports normal browser text selection and copying.
+[Architecture and developer guide](docs/DEVELOPMENT.md) ·
+[Customization guide](docs/CUSTOMIZATION.md) ·
+[Credits](docs/CREDITS.md)
 
-## Related project
+## Related work
 
-The [animated SVG terminal for a GitHub profile](https://github.com/yassinebkr/test) is a separate Python-generated project. Its current source repository is private and is planned for public release under a new name. ShellFolio focuses exclusively on the interactive browser experience.
+The [GitHub profile terminal SVG generator](https://github.com/yassinebkr/test)
+is a **separate project** (currently private, intended for a future public
+release). ShellFolio contains the interactive website and its own README demo.
 
-## Credits
-
-This project grew out of a GitHub terminal profile experiment inspired by [AienTech](https://github.com/AienTech) and the [AienTech/aientech](https://github.com/AienTech/aientech) repository. The original animated SVG work was an inspiration; ShellFolio's browser interface and virtual shell are independent implementations.
-
-The Debian swirl vector is derived from [Simple Icons — Debian](https://github.com/simple-icons/simple-icons/blob/develop/icons/debian.svg). See the [Debian logo guidelines](https://www.debian.org/logos/) and [asset credits](docs/CREDITS.md).
+Originally inspired by [AienTech](https://github.com/AienTech/aientech).
+Debian artwork comes from [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/debian.svg);
+see [asset credits](docs/CREDITS.md).

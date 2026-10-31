@@ -1,173 +1,134 @@
-# Customizing ShellFolio
+# Customize ShellFolio
 
-ShellFolio is a read-only virtual terminal. You can adapt the content and
-interaction paths without implementing a new renderer or running a server.
+The site can be personalized without changing its renderer or running a
+server. Start with **`portfolio.config.js`**.
 
-The configuration entry point is **`portfolio.config.js`**. The application
-reads its definitions at startup; `app.js` builds the visitor
-shortcuts automatically. The XFCE menu labels are decorative. GitHub Pages serves this as a static site.
+## Quick-start map
 
-## 1. Decide what a visitor should discover
+| What to change | File |
+| --- | --- |
+| Clickable shortcuts | `portfolio.config.js` → `quickActions` |
+| New text responses | `portfolio.config.js` → `presetResponses` |
+| Virtual projects and filesystem | `engine.js` |
+| Intro text and progress steps | `launch-script.js` |
+| Animation timing in README | `tools/demo_timing.py` |
+| Window sizing and shortcut styling | `style.css` |
+| README demo commands | `tools/make_demo.py` |
 
-Start from your portfolio's highest-value evidence. Define a concise set of
-shortcuts that cover an introduction, concrete projects, relevant skills,
-and a way to get in touch. Avoid repeating the same destinations under
-different labels. Prefer verified measurements to broad claims.
+## 1. Choose visitor shortcuts
 
-A shortcut has two independent pieces: a human-readable label and a
-command the virtual interpreter can execute.
+Edit the `quickActions` array:
 
 ```js
 export const quickActions = Object.freeze([
+  { label: 'Run', command: './launch-interactive.sh' },
+  { label: 'Clean', command: 'clean' },
   { label: 'Projects', command: 'projects' },
-  { label: 'LoRa project', command: 'inspect lora' },
   { label: 'Contact', command: 'contact' }
 ]);
 ```
 
-The suggestions are rendered **under the terminal output** as a compact text-command strip, remain in view when its history scrolls, and call the same interpreter as a typed command.
-They are not placeholders or prewritten HTML output.
+The shortcuts appear in a compact **text strip below the terminal**, remain
+visible while its output scrolls, and execute the same virtual commands as
+keyboard input. Avoid duplicate destinations and overly long labels.
 
-## 2. Add your predefined responses
+## 2. Add predefined responses
 
-The `presetResponses` object in `portfolio.config.js` defines additional
-**read-only simulated commands**. For example:
+Add a command key under `presetResponses`:
 
 ```js
 export const presetResponses = Object.freeze({
   contact: {
-    description: 'Public contact information',
+    description: 'How to get in touch',
     lines: [
       'Contact',
-      'GitHub: https://github.com/your-account',
-      'Explore my public work and get in touch through GitHub.'
-    ]
-  },
-  availability: {
-    description: 'Areas of interest',
-    lines: [
-      'Current interests: embedded Linux, digital design, RF systems.'
+      'GitHub: https://github.com/your-account'
     ]
   }
 });
 ```
 
-Add `{ label: 'Interests', command: 'availability' }` to `quickActions`
-to expose that response without asking visitors to type.
+Then add `{ label: 'Contact', command: 'contact' }` to `quickActions`.
 
-Each preset key is registered as a command, appears in shell completion,
-and returns its text through the existing safe renderer. Presets accept
-no arguments; they never execute JavaScript, Bash, HTTP calls or system
-commands. External URLs in ordinary response strings display as text.
-Only the interpreter's curated links are clickable.
+- Each key becomes a read-only terminal command with completion support.
+- Response text is escaped; it does not run Bash, JavaScript or HTTP.
+- Review every public claim, URL and contact detail before publishing.
 
-## 3. Run and Clean
+## 3. Set the introductory experience
 
-The persistent quick-action rail starts with **Run** and **Clean**. Run replays
-the simulated `./launch-interactive.sh`; Clean executes the virtual `clean`
-command. `clean`, `clear`, and `reset` empty the entire visible terminal,
-including its initial neofetch output, without changing the working directory.
+Edit `launch-script.js` to change the simulated introduction.
 
-While a script runs, the live Bash prompt is hidden until completion or
-interruption. The quick-action rail stays visible. Selecting a quick action
-interrupts the current animation; Escape finishes it, and Ctrl+C cancels it.
+| Step | Output |
+| --- | --- |
+| `line` | Print a complete line |
+| `type` | Reveal a line progressively |
+| `progress` | Update a temporary ASCII loading indicator |
 
-The File/Edit/View/Terminal/Tabs/Help menu labels and window controls are
-**visual-only**, intentionally without click handlers or misleading actions.
-The command prompt and quick-action buttons provide real interaction.
+Finish with a clear invitation to type **`help`** or use the shortcuts below.
+The normal URL starts the intro; `?view=listing` skips it.
 
-### Shortcut execution timing
+**Interaction:** Esc finishes the script; Ctrl+C interrupts it when nothing
+is selected. Shortcuts remain available during playback. Selected text can
+still be copied normally.
 
-A quick-action click prints the full command on its own shell prompt at once,
-then waits **280 ms** before showing its response (equivalent to a short pause
-after pressing Enter). There is **no per-character typing animation** for
-shortcuts. The default automatic `./launch-interactive.sh` introduction still
-types the command progressively; invoking Run from the quick-action rail does
-not. The script's own staged loading indicators and line-by-line output remain.
+## 4. Set the timings
 
-Run, Clean and all configured presets use the same read-only interpreter as
-manual commands. A second shortcut interrupts any previous animation or
-pending shortcut. During the pause the active input prompt is hidden; after
-the response it returns normally. Escape and Ctrl+C can interrupt a pending
-shortcut, while an active text selection keeps Ctrl+C available for copying.
-With reduced-motion enabled, the extra pause is skipped.
+There are **two different animation mechanisms**:
 
-## 4. Personalize project evidence and the introductory script
+| Where | Timing |
+| --- | --- |
+| Clickable website shortcuts | Full command appears immediately, then a 280 ms pause |
+| GitHub README SVG | Empty prompt appears quickly; writing begins after a small pause |
 
-Change the virtual filesystem and the built-in commands in `engine.js`,
-including project descriptions, dates, repository links and technical
-results. Review measurements carefully and label unverified performance
-targets as targets.
+For the README SVG, edit `tools/demo_timing.py`:
 
-Edit `launch-script.js` to change the progressive introduction. It
-contains declarative steps: `line`, `type` and `progress`. These
-are simulated portfolio operations, not actual hardware diagnostics.
-The browser renderer handles pacing, Esc to finish, Ctrl+C to interrupt,
-and reduced-motion accessibility. The last line should explicitly invite
-the visitor to type `help` or select a shortcut below the terminal.
+```python
+COMMAND_PACING_MS = {
+    "cd": {"execution": 80, "pause_after": 190},
+    "ls": {"execution": 130, "pause_after": 200},
+    "inspect": {"execution": 220, "pause_after": 220},
+}
+```
 
-`startup.js` selects the default introduction. Use `?view=listing`
-to enter directly with the workspace listing. `?run=launch` is a
-supported explicit launcher link.
+All values are **milliseconds**, purely visual, not real execution times.
 
-## 5. Styling and README demonstration
+The result appears after `execution`. A blank prompt appears **60 ms**
+later; the next command starts typing after `pause_after`. The number of
+output lines affects only vertical layout, **never** these delays.
 
-Use `style.css` for window proportions, fonts, dropdowns and the
-persistent visitor-shortcut rail. The visual rendering is intentionally
-separate from content configuration.
+## 5. Update the README SVG
 
-The README's `assets/terminal-demo.svg` is a generated **visual replay**, not a second
-terminal implementation. Do not modify its SVG markup by hand.
-`tools/make_demo.py` runs commands through the production `engine.js` and
-renders their structured output.
+The website and SVG share shortcut labels from `portfolio.config.js`, but
+only the website's buttons are interactive.
 
-The preview follows the same visual conventions as the live window, including
-the compact, unboxed text shortcut strip rather than individual card-like buttons:
-**unboxed XFCE menu labels**, non-interactive window chrome, and a consistent
-21px terminal row height. Prompts follow their actual output lines
-**without blank separators**; a silent command such as `cd` is followed
-immediately by the next prompt. An explicitly empty output line is preserved
-if the command genuinely emits one.
+```bash
+npm run demo
+git diff -- assets/terminal-demo.svg
+```
 
-Shortcut labels come from `portfolio.config.js` during generation, keeping
-the bottom rail synchronized with the website. GitHub displays embedded SVGs
-as images: the shortcut buttons shown in the README are only illustrations,
-while the website's shortcuts execute virtual commands.
-
-The SVG keeps a fixed **1080px width** and derives its height and shortcut position from the number of actual output rows. The animation plays once and stays on the completed frame, with only its cursor blinking. Its timings are computed by `tools/demo_timing.py` from the command category and length; **output row count controls only visual height**, not how quickly a result arrives. Update `COMMAND_PACING_MS` to adapt the pace, and run the Python timing tests. Regenerate with `npm run demo` after altering commands or the shortcut configuration.
-
-The related Python SVG generator for the GitHub profile README lives in
-a separate repository: https://github.com/yassinebkr/test
+The preview uses unboxed XFCE menu labels, 21 px terminal rows and a dynamic
+height. It plays **once**, retains its final frame and never erases the
+commands backward. Do not manually edit the generated SVG.
 
 ## 6. Test and publish
 
-From the ShellFolio repository root:
-
 ```bash
 npm test
+python3 -m unittest discover -s tests -p 'test_demo_timing.py'
 node --check app.js
-node --check engine.js
-node --check portfolio.config.js
 npm run demo
-git diff --check
-git diff -- assets/terminal-demo.svg
 python3 -m http.server 8000
 ```
 
-Inspect `http://localhost:8000/` in a browser. Check both desktop and
-mobile widths. Try Run, Clean, other quick actions, Tab completion, keyboard navigation
-and introductory replay. Confirm the XFCE menu chrome is inert.
+Inspect `http://localhost:8000/` at desktop and mobile widths, then verify
+the intro, Run/Clean, Tab completion, copy/paste and shortcut interruptions.
 
-GitHub Actions validates the source and demo on every push. GitHub Pages
-publishes the repository's `main` branch from `/(root)`.
+GitHub Pages publishes `main` / `/(root)`. Every file in the public static
+repository is accessible to visitors: **never commit secrets or private
+project information**.
 
-**Privacy:** every value in the static JavaScript configuration is public
-once deployed. Do not add passwords, private addresses, secrets, or
-unpublished project information.
+## Related work
 
-## Related work and acknowledgements
-
-The original animated GitHub profile terminal was inspired by
-[AienTech's terminal work](https://github.com/AienTech/aientech).
-ShellFolio's interactive browser shell and customization features are
-independently developed.
+The [GitHub profile SVG generator](https://github.com/yassinebkr/test) is
+maintained separately. The original terminal-profile experiment was inspired
+by [AienTech](https://github.com/AienTech/aientech).
