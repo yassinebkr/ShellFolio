@@ -14,7 +14,7 @@ present your own work.
 
 ## Explore
 
-- **Start:** an animated `./launch-interactive.sh` introduction appears on arrival.
+- **Start:** direct visits animate `./launch-interactive.sh`; profile SVG links resume after `neofetch` and the workspace listing.
 - **Navigate:** try `help`, `projects`, `skills`, `ls`, or `inspect lora`.
 - **Shortcuts:** Run, Clear and project navigation stay below the terminal.
 - **Keyboard:** type without clicking after the intro; Tab/→ completes commands and ↑/↓ navigates history.
@@ -52,4 +52,5 @@ GitHub Pages serves the project from `main` at the repository root.
 
 [Architecture and development](docs/DEVELOPMENT.md) ·
 [Customize ShellFolio](docs/CUSTOMIZATION.md) ·
+[Deferred ideas](docs/ROADMAP.md) ·
 [Credits](docs/CREDITS.md)
