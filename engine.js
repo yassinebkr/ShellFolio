@@ -53,6 +53,8 @@ const safeLinks = new Map([
 ]);
 const groups = Object.keys(root);
 const cwdRoot = `${home}/workspace`;
+// Match the dates in the final frame of github-profile-terminal-svg.
+const workspaceDates = Object.freeze(['Sep 21', 'Oct 19', 'Oct 22', 'Oct 24', 'Oct 29']);
 
 const segment = (text, style = '') => ({ text: String(text), style });
 const line = (...parts) => ({ parts: parts.map(part => typeof part === 'string' ? segment(part) : part) });
@@ -215,7 +217,7 @@ export class TerminalEngine {
             'Terminal   xfce4-terminal',
             'Focus      Electronics / Embedded Systems',
             'Toolchain  KiCad / Python / C / C++',
-            'Projects   CinemaPi5 / LoRa telemetry'
+            'Projects   CinemaPi5 / LoRa / BigBrain'
           )
         ],
         cwd: this.cwd
@@ -257,7 +259,13 @@ export class TerminalEngine {
       }
       if (!long) return { lines: [line(...childrenAtPath.map(x => segment(x.padEnd(17), x.endsWith('/') ? 'dir' : '')))], cwd: this.cwd };
       const rows = [plain(`total ${childrenAtPath.length * 4}`)];
-      childrenAtPath.forEach((name,i) => rows.push(line(segment(`${name.endsWith('/') ? 'd' : '-'}rwxr-xr-x  2 yassine  yassine  ${name.endsWith('/') ? '4096' : ' 512'} Oct 31  `, 'muted'), segment(name, name.endsWith('/') ? 'dir' : ''))));
+      childrenAtPath.forEach((name, i) => {
+        const date = target === cwdRoot ? workspaceDates[i] : 'Oct 31';
+        rows.push(line(
+          segment(`${name.endsWith('/') ? 'd' : '-'}rwxr-xr-x  2 yassine  yassine  ${name.endsWith('/') ? '4096' : ' 512'} ${date}  `, 'muted'),
+          segment(name, name.endsWith('/') ? 'dir' : '')
+        ));
+      });
       return { lines: rows, cwd: this.cwd };
     }
     if (command === 'cat') {
