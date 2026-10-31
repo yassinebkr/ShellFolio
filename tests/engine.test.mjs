@@ -255,3 +255,17 @@ test('README animation timing uses command semantics, not line counts or fixed m
   assert.match(svg, /animation:sequence0 5s/);
   assert.match(svg, /animation:lastPrompt 5s/);
 });
+
+test('README generator displays idle prompts before typing and uses short semantic pauses', () => {
+  const timing = readFileSync(new URL('../tools/demo_timing.py', import.meta.url), 'utf8');
+  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
+  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
+  assert.match(timing, /PROMPT_AFTER_OUTPUT_MS = 60/);
+  assert.match(timing, /"ls": \{"execution": 130, "pause_after": 200\}/);
+  assert.match(timing, /prompt_at=prompt_ms \/ 1000/);
+  assert.match(generator, /visibility_animation\(class_name, prompt_at\)/);
+  assert.match(generator, /prompt_svg\(entry\["command"\],entry\["location"\],baseline,i,start,end\)/);
+  assert.match(svg, /@keyframes sequence1/);
+  assert.match(svg, /@keyframes typing1/);
+  assert.doesNotMatch(svg, /animation:sequence1 [^;]* infinite/);
+});

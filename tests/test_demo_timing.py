@@ -1,40 +1,57 @@
-"""Behavioral tests for semantic README replay timing."""
+"""Small behavioral checks for the README SVG's animation scheduler."""
 
+import sys
 import unittest
 from pathlib import Path
-import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from demo_timing import plan_timeline
+
+from demo_timing import COMMAND_PACING_MS, PROMPT_AFTER_OUTPUT_MS, plan_timeline
 
 
 class DemoTimingTests(unittest.TestCase):
-    def test_short_shell_commands_return_prompt_quickly(self):
-        cmds = ["ls -l ~/workspace", "cd workspace/projects", "ls", "inspect lora"]
-        run = plan_timeline(cmds)
-        self.assertEqual(len(run.commands), len(cmds))
+    def test_prompt_appears_before_next_command_is_typed(self):
+        run = plan_timeline(["ls -l ~/workspace", "cd workspace/projects", "ls", "inspect lora"])
+        self.assertEqual(len(run.commands), 4)
         for previous, following in zip(run.commands, run.commands[1:]):
-            self.assertLessEqual(following.start - previous.reveal, 0.18)
-        self.assertLessEqual(run.final_prompt_at - run.commands[-1].reveal, 0.18)
-        self.assertLess(run.duration, 7)
+            # A new empty prompt appears almost immediately after the output.
+            self.assertAlmostEqual(
+                following.prompt_at - previous.reveal,
+                PROMPT_AFTER_OUTPUT_MS / 1000,
+            )
+            # The text itself waits a little longer, so it feels human.
+            self.assertGreaterEqual(following.start - previous.reveal, 0.18)
+            self.assertLessEqual(following.start - previous.reveal, 0.25)
+            self.assertLess(following.prompt_at, following.start)
 
-    def test_execution_time_depends_on_command_not_output_rows(self):
-        a = plan_timeline(["ls", "inspect lora"])
-        b = plan_timeline(["ls", "inspect lora"])
-        self.assertEqual(a, b)
-        ls, inspect = a.commands
+        self.assertAlmostEqual(
+            run.final_prompt_at - run.commands[-1].reveal,
+            PROMPT_AFTER_OUTPUT_MS / 1000,
+        )
+        self.assertLessEqual(run.duration, 6)
+
+    def test_command_category_not_output_rows_controls_execution(self):
+        first = plan_timeline(["ls", "inspect lora"])
+        second = plan_timeline(["ls", "inspect lora"])
+        self.assertEqual(first, second)
+        ls, inspect = first.commands
         self.assertLess(ls.reveal - ls.stop, inspect.reveal - inspect.stop)
         self.assertGreater(inspect.stop - inspect.start, ls.stop - ls.start)
 
-    def test_silent_cd_has_no_artificial_wait(self):
+    def test_cd_and_ls_have_short_independent_post_result_pauses(self):
         run = plan_timeline(["cd workspace/projects", "ls"])
-        self.assertLessEqual(run.commands[1].start - run.commands[0].reveal, 0.12)
+        cd, ls = run.commands
+        self.assertAlmostEqual(
+            ls.start - cd.reveal,
+            COMMAND_PACING_MS["cd"]["pause_after"] / 1000,
+        )
+        self.assertEqual(COMMAND_PACING_MS["ls"]["pause_after"], 200)
 
-    def test_invalid_script_inputs(self):
-        for commands in ([], [""]):
-            with self.subTest(commands=commands):
+    def test_reject_empty_transcripts_and_commands(self):
+        for bad in ([], [""], ["ls", "  "]):
+            with self.subTest(bad=bad):
                 with self.assertRaises(ValueError):
-                    plan_timeline(commands)
+                    plan_timeline(bad)
 
 
 if __name__ == "__main__":

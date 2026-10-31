@@ -173,13 +173,13 @@ visuals: list[str] = []
 # Output row counts are used only to position subsequent prompts vertically.
 schedule = plan_timeline([entry["command"] for entry in transcript])
 DURATION = schedule.duration
-timings = [(cue.start, cue.stop, cue.reveal) for cue in schedule.commands]
+timings = [(cue.prompt_at, cue.start, cue.stop, cue.reveal) for cue in schedule.commands]
 LINE_HEIGHT = 21
 next_baseline = 101
 sequences = []
 row_baselines = []
-for entry, (start, stop, reveal) in zip(transcript, timings):
-    sequences.append((next_baseline, start, stop, reveal))
+for entry, (prompt_at, start, stop, reveal) in zip(transcript, timings):
+    sequences.append((next_baseline, prompt_at, start, stop, reveal))
     row_baselines.append(next_baseline + LINE_HEIGHT)
     next_baseline += (1 + len(entry["rows"])) * LINE_HEIGHT
 
@@ -187,9 +187,9 @@ for entry, (start, stop, reveal) in zip(transcript, timings):
 # the empty expanse that previously hid the shortcut links in GitHub's preview.
 rail_top = next_baseline + 29
 canvas_height = rail_top + 56
-for i, (entry, (baseline, start, end, reveal)) in enumerate(zip(transcript, sequences)):
+for i, (entry, (baseline, prompt_at, start, end, reveal)) in enumerate(zip(transcript, sequences)):
     class_name = f'sequence{i}'
-    visibility_animation(class_name, start)
+    visibility_animation(class_name, prompt_at)
     visuals.append(f'<g class="{class_name}">{prompt_svg(entry["command"],entry["location"],baseline,i,start,end)}</g>')
     if entry["rows"]:
         name = f'result{i}'
