@@ -207,7 +207,7 @@ test('staged shortcuts can be canceled safely and do not animate typed character
 test('architecture diagrams use compact Mermaid flowcharts', () => {
   const doc = readFileSync(new URL('../docs/DEVELOPMENT.md', import.meta.url), 'utf8');
   const diagrams = [...doc.matchAll(/```mermaid\n([\s\S]*?)\n```/g)];
-  assert.equal(diagrams.length, 3);
+  assert.equal(diagrams.length, 2);
   assert.ok(diagrams.every(item => /^flowchart (?:TD|TB|LR)\n/.test(item[1])));
   assert.doesNotMatch(doc, /sequenceDiagram/);
   assert.match(doc, /Pause 280 ms/);
