@@ -1,23 +1,20 @@
 # Customize ShellFolio
 
-The site can be personalized without changing its renderer or running a
-server. Start with **`portfolio.config.js`**.
+Fork the repository and replace the sample projects with your own. Most
+visitor-facing labels and responses live in `portfolio.config.js`.
 
-## Quick-start map
+## What to edit
 
-| What to change | File |
+| Feature | File |
 | --- | --- |
-| Clickable shortcuts | `portfolio.config.js` → `quickActions` |
-| New text responses | `portfolio.config.js` → `presetResponses` |
-| Virtual projects and filesystem | `engine.js` |
-| Intro text and progress steps | `launch-script.js` |
-| Animation timing in README | `tools/demo_timing.py` |
-| Window sizing and shortcut styling | `style.css` |
-| README demo commands | `tools/make_demo.py` |
+| Shortcut buttons | `portfolio.config.js` → `quickActions` |
+| Custom commands and responses | `portfolio.config.js` → `presetResponses` |
+| Projects and virtual folders | `engine.js` |
+| Introductory content | `launch-script.js` |
+| Terminal appearance | `style.css` |
+| Initial route | `startup.js` |
 
-## 1. Choose visitor shortcuts
-
-Edit the `quickActions` array:
+## 1. Choose the shortcuts
 
 ```js
 export const quickActions = Object.freeze([
@@ -28,18 +25,17 @@ export const quickActions = Object.freeze([
 ]);
 ```
 
-The shortcuts appear in a compact **text strip below the terminal**, remain
-visible while its output scrolls, and execute the same virtual commands as
-keyboard input. Avoid duplicate destinations and overly long labels.
+The labels remain visible under the terminal. Every shortcut calls the same
+virtual command interpreter as typed input.
 
-## 2. Add predefined responses
+## 2. Add your own responses
 
-Add a command key under `presetResponses`:
+In `portfolio.config.js`:
 
 ```js
 export const presetResponses = Object.freeze({
   contact: {
-    description: 'How to get in touch',
+    description: 'Contact information',
     lines: [
       'Contact',
       'GitHub: https://github.com/your-account'
@@ -48,87 +44,47 @@ export const presetResponses = Object.freeze({
 });
 ```
 
-Then add `{ label: 'Contact', command: 'contact' }` to `quickActions`.
+Then register `{ label: 'Contact', command: 'contact' }` as a shortcut.
 
-- Each key becomes a read-only terminal command with completion support.
-- Response text is escaped; it does not run Bash, JavaScript or HTTP.
-- Review every public claim, URL and contact detail before publishing.
+Preset commands return escaped text and cannot execute scripts or system
+commands. Review public-facing contact information before publishing.
 
-## 3. Set the introductory experience
+## 3. Set up the introduction
 
-Edit `launch-script.js` to change the simulated introduction.
+Edit `launch-script.js`:
 
-| Step | Output |
+| Step | Effect |
 | --- | --- |
 | `line` | Print a complete line |
 | `type` | Reveal a line progressively |
-| `progress` | Update a temporary ASCII loading indicator |
+| `progress` | Update an ASCII activity indicator |
 
-Finish with a clear invitation to type **`help`** or use the shortcuts below.
-The normal URL starts the intro; `?view=listing` skips it.
+Finish by inviting visitors to type `help` or use the shortcuts.
 
-**Interaction:** Esc finishes the script; Ctrl+C interrupts it when nothing
-is selected. Shortcuts remain available during playback. Selected text can
-still be copied normally.
+## 4. Test the interactions
 
-## 4. Set the timings
-
-There are **two different animation mechanisms**:
-
-| Where | Timing |
+| Action | Expected behavior |
 | --- | --- |
-| Clickable website shortcuts | Full command appears immediately, then a 280 ms pause |
-| GitHub README SVG | Empty prompt appears quickly; writing begins after a small pause |
+| Click a shortcut | Full command appears; result follows after 280 ms |
+| Click Run | Replay the introduction |
+| Click Clean | Clear visible terminal output |
+| Select output | Normal browser selection and copy |
+| Press Escape | Complete the active introduction |
+| Press Ctrl+C | Copy selected text or interrupt active playback |
+| Enable reduced motion | Avoid unnecessary animation delays |
 
-For the README SVG, edit `tools/demo_timing.py`:
+The File/Edit/View/Terminal/Tabs/Help menu labels are decorative.
 
-```python
-COMMAND_PACING_MS = {
-    "cd": {"execution": 80, "pause_after": 190},
-    "ls": {"execution": 130, "pause_after": 200},
-    "inspect": {"execution": 220, "pause_after": 220},
-}
-```
-
-All values are **milliseconds**, purely visual, not real execution times.
-
-The result appears after `execution`. A blank prompt appears **60 ms**
-later; the next command starts typing after `pause_after`. The number of
-output lines affects only vertical layout, **never** these delays.
-
-## 5. Update the README SVG
-
-The website and SVG share shortcut labels from `portfolio.config.js`, but
-only the website's buttons are interactive.
-
-```bash
-npm run demo
-git diff -- assets/terminal-demo.svg
-```
-
-The preview uses unboxed XFCE menu labels, 21 px terminal rows and a dynamic
-height. It plays **once**, retains its final frame and never erases the
-commands backward. Do not manually edit the generated SVG.
-
-## 6. Test and publish
+## 5. Test and publish
 
 ```bash
 npm test
-python3 -m unittest discover -s tests -p 'test_demo_timing.py'
 node --check app.js
-npm run demo
 python3 -m http.server 8000
 ```
 
-Inspect `http://localhost:8000/` at desktop and mobile widths, then verify
-the intro, Run/Clean, Tab completion, copy/paste and shortcut interruptions.
+Inspect `http://localhost:8000/`, including narrow screens and keyboard
+navigation. GitHub Pages serves the `main` branch from the root directory.
 
-GitHub Pages publishes `main` / `/(root)`. Every file in the public static
-repository is accessible to visitors: **never commit secrets or private
-project information**.
-
-## Related work
-
-The [GitHub profile SVG generator](https://github.com/yassinebkr/test) is
-maintained separately. The original terminal-profile experiment was inspired
-by [AienTech](https://github.com/AienTech/aientech).
+**All static configuration is public.** Keep passwords, private addresses and
+unpublished project details out of the repository.

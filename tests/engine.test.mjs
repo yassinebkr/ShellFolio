@@ -5,7 +5,6 @@ import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 import { initialScene } from '../startup.js';
 import { quickActions, presetResponses } from '../portfolio.config.js';
 import { readFileSync } from 'node:fs';
-import { quickActions as configuredActions } from '../portfolio.config.js';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -179,19 +178,9 @@ test('copyable output never triggers generic focus stealing', () => {
   assert.match(app, /window\.getSelection\(\)/);
   assert.match(app, /selection && !selection\.isCollapsed/);
   assert.match(css, /user-select: text/);
-  assert.ok(configuredActions.length > 0);
+  assert.ok(quickActions.length > 0);
 });
 
-test('README demo generator reads shortcut configuration, not a second list', () => {
-  const gen = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
-  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
-  assert.match(gen, /import \{ quickActions \} from '\.\/portfolio\.config\.js'/);
-  assert.match(svg, /id="quick-actions-preview"/);
-  assert.match(svg, />shortcuts<\/text>/);
-  for (const action of configuredActions) {
-    assert.ok(svg.includes('>' + action.label.toLowerCase() + '</text>'));
-  }
-});
 
 test('quick-action command is displayed first, then its output is appended', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
@@ -225,47 +214,5 @@ test('architecture diagrams use compact Mermaid flowcharts', () => {
 });
 
 
-test('README replay keeps completed lines visible with no rewind or hidden shortcuts', () => {
-  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
-  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
-  const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
-  assert.match(readme, /assets\/terminal-demo\.svg/);
-  assert.match(svg, /id="quick-actions-preview"/);
-  assert.doesNotMatch(svg, /100% \{opacity:0;\}/);
-  assert.doesNotMatch(svg, /100% \{width:0;\}/);
-  assert.doesNotMatch(svg, /\.typing\d+ \{animation:[^}]*infinite/);
-  const canvasHeight = Number(svg.match(/viewBox="0 0 1080 (\d+)"/)?.[1]);
-  const last = Number(svg.match(/<g class="lastPrompt"><text x="26" y="(\d+)"/)?.[1]);
-  const rail = Number(svg.match(/<g id="quick-actions-preview">\n<rect x="1" y="(\d+)"/)?.[1]);
-  assert.equal(rail, last + 29);
-  assert.equal(canvasHeight, rail + 56);
-  assert.match(generator, /LINE_HEIGHT = 21/);
-  assert.match(generator, /render_quick_actions\(get_quick_actions\(\), rail_top\)/);
-});
 
-test('README animation timing uses command semantics, not line counts or fixed moments', () => {
-  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
-  const module = readFileSync(new URL('../tools/demo_timing.py', import.meta.url), 'utf8');
-  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
-  assert.match(generator, /plan_timeline\(\[entry\["command"\] for entry in transcript\]\)/);
-  assert.match(generator, /schedule\.final_prompt_at/);
-  assert.match(module, /COMMAND_PACING_MS/);
-  assert.doesNotMatch(module, /len\(.*rows/);
-  assert.doesNotMatch(generator, /visibility_animation\("lastPrompt", 18\.0\)/);
-  assert.match(svg, /animation:sequence0 5s/);
-  assert.match(svg, /animation:lastPrompt 5s/);
-});
 
-test('README generator displays idle prompts before typing and uses short semantic pauses', () => {
-  const timing = readFileSync(new URL('../tools/demo_timing.py', import.meta.url), 'utf8');
-  const generator = readFileSync(new URL('../tools/make_demo.py', import.meta.url), 'utf8');
-  const svg = readFileSync(new URL('../assets/terminal-demo.svg', import.meta.url), 'utf8');
-  assert.match(timing, /PROMPT_AFTER_OUTPUT_MS = 60/);
-  assert.match(timing, /"ls": \{"execution": 130, "pause_after": 200\}/);
-  assert.match(timing, /prompt_at=prompt_ms \/ 1000/);
-  assert.match(generator, /visibility_animation\(class_name, prompt_at\)/);
-  assert.match(generator, /prompt_svg\(entry\["command"\],entry\["location"\],baseline,i,start,end\)/);
-  assert.match(svg, /@keyframes sequence1/);
-  assert.match(svg, /@keyframes typing1/);
-  assert.doesNotMatch(svg, /animation:sequence1 [^;]* infinite/);
-});
