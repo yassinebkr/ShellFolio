@@ -13,7 +13,7 @@ export const repositoryLink = Object.freeze({
 
 export const quickActions = Object.freeze([
   { label: 'Run', command: './launch-interactive.sh' },
-  { label: 'Clean', command: 'clean' },
+  { label: 'Clear', command: 'clear' },
   { label: 'Projects', command: 'projects' },
   { label: 'Workspace', command: 'ls -l ~/workspace' },
   { label: 'Skills', command: 'skills' },
@@ -27,9 +27,9 @@ export const presetResponses = Object.freeze({
   contact: Object.freeze({
     description: 'Public contact information',
     lines: Object.freeze([
-      'Contact',
-      'GitHub: https://github.com/yassinebkr',
-      'Explore my public repositories and get in touch through GitHub.'
+      'CONTACT',
+      Object.freeze({ text: 'GitHub: https://github.com/yassinebkr', href: 'https://github.com/yassinebkr' }),
+      Object.freeze({ text: 'Email: yabbo01@gmail.com', href: 'mailto:yabbo01@gmail.com' })
     ])
   })
 });
