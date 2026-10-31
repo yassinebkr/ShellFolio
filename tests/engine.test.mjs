@@ -110,13 +110,47 @@ test('launcher shares a declarative, sequential transcript with the browser', ()
   assert.ok(!JSON.stringify(LAUNCH_STEPS).includes('<script'));
 });
 
-test('every normal entry point starts the visible script instead of the old listing', () => {
+test('profile link resumes after ls; direct visits retain the launch, listing overrides both', () => {
   assert.equal(initialScene(''), 'launch');
-  assert.equal(initialScene('?run=launch'), 'launch');
+  assert.equal(initialScene('?run=launch'), 'profile');
+  assert.equal(initialScene('?run=launch&foo=bar'), 'profile');
+  assert.equal(initialScene('?run=unknown'), 'launch');
   assert.equal(initialScene('?foo=bar'), 'launch');
   assert.equal(initialScene('?view=listing'), 'listing');
   assert.equal(initialScene('?run=launch&view=listing'), 'listing');
   assert.equal(initialScene('?view=unknown'), 'launch');
+});
+
+test('profile handoff paints ls once before typing and animating launch', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /<span>neofetch<\/span>/);
+  assert.match(html, /CinemaPi5 \/ LoRa \/ BigBrain/);
+  assert.match(app, /const scene = initialScene\(window\.location\.search\);/);
+  assert.match(app, /if \(scene !== 'launch'\) \{[\s\S]*?displayCommand\('ls -l ~\/workspace', '~', listing\.lines\);\s*\}/);
+  assert.match(app, /if \(scene !== 'listing'\) \{[\s\S]*?submitCommand\('\.\/launch-interactive\.sh', \{ typeCommand: true, focusWhenReady: true \}\);\s*\}/);
+  assert.match(app, /await sleep\(190, signal\);/);
+  assert.match(app, /for \(const character of typedCommand\)/);
+  assert.match(app, /restorePrompt\(\{ focus: shouldFocus \}\)/);
+  assert.match(html, /app\.js\?v=15/);
+});
+
+test('profile SVG ls and virtual shell workspace listing agree on dates and order', () => {
+  const shell = new TerminalEngine();
+  const result = shell.execute('ls -l ~/workspace').lines;
+  const text = result.map(row => row.parts.map(part => part.text).join('')).join('\n');
+  assert.match(text, /^total 20/);
+  const expected = [
+    ['Sep 21', 'hardware/'], ['Oct 19', 'embedded/'], ['Oct 22', 'software/'],
+    ['Oct 24', 'fabrication/'], ['Oct 29', 'projects/']
+  ];
+  const lines = text.split('\n').slice(1);
+  assert.equal(lines.length, expected.length);
+  for (const [index, [date, directory]] of expected.entries()) {
+    assert.match(lines[index], new RegExp('4096 ' + date + '  ' + directory.replace('/', '\\/')));
+  }
+  assert.deepEqual(shell.history, ['ls -l ~/workspace']);
+  assert.equal(shell.location, '~');
 });
 
 test('custom visitor shortcuts and predefined responses run through the same shell', () => {
@@ -279,7 +313,7 @@ test('manual neofetch requests the full initial Debian profile, not simplified l
   const response = shell.execute('neofetch');
   const printed = stringify(response);
   assert.equal(response.view, 'system-profile');
-  for (const term of ['Debian GNU/Linux 13', 'Shell', 'Xfce', 'xfce4-terminal', 'KiCad', 'CinemaPi5']) {
+  for (const term of ['Debian GNU/Linux 13', 'Shell', 'Xfce', 'xfce4-terminal', 'KiCad', 'CinemaPi5', 'LoRa', 'BigBrain']) {
     assert.ok(printed.includes(term), 'Missing neofetch field: ' + term);
   }
   assert.match(stringify(shell.execute('neofetch --bad')), /unexpected arguments/);
@@ -383,7 +417,7 @@ test('shortcut completion always restores the editable prompt and keyboard focus
   assert.match(app, /restorePrompt\(\{ focus: focusWhenReady \}\)/);
   assert.match(app, /restorePrompt\(\{ focus: current\.focusWhenDone \}\)/);
   assert.match(app, /run\.startedByShortcut/);
-  assert.match(html, /app\.js\?v=14/);
+  assert.match(html, /app\.js\?v=15/);
 });
 test('shortcut focus restoration respects another action and text selection', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
