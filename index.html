@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>ShellFolio — Terminal</title>
   <link rel="stylesheet" href="./style.css?v=12">
-  <script type="module" src="./app.js?v=15"></script>
+  <script type="module" src="./app.js?v=16"></script>
 </head>
 <body>
   <main class="terminal" id="terminal" aria-label="ShellFolio interactive Linux terminal">
@@ -26,7 +26,7 @@
     <div class="menu-bar" aria-hidden="true"><span>File</span><span>Edit</span><span>View</span><span>Terminal</span><span>Tabs</span><span>Help</span></div>
 
     <div class="terminal-body" id="terminal-body">
-      <div id="output" role="log" aria-label="Terminal output" aria-live="polite" aria-relevant="additions text">
+      <div id="output" role="log" aria-label="Terminal output" aria-live="polite" aria-relevant="additions text" hidden>
         <div class="intro-line"><span class="user">yassine@debian</span><span class="path">:~</span><span class="cmd-sep">$ </span><span>neofetch</span></div>
         <section class="sysfetch" aria-label="Engineering system profile">
           <div class="sysfetch-logo"><img src="./assets/debian.svg" alt="Debian swirl"></div>
