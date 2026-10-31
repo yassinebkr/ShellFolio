@@ -37,40 +37,29 @@ privileges. The DOM renderer converts the interpreter's structured responses
 into text nodes and approved links. The profile SVG generator is a different
 project and is not part of this runtime.
 
-### Command execution and text selection
+### Command lifecycle
+
+The command path is intentionally small. A shortcut differs from manual input
+only in its initial echo and short delay; both use the same interpreter.
 
 ```mermaid
-sequenceDiagram
-    actor Visitor
-    participant Input as Command input / shortcut
-    participant UI as app.js
-    participant Engine as engine.js
-    participant View as Terminal output
-
-    Visitor->>Input: Enter command or select shortcut
-    Input->>UI: submitCommand(command)
-    UI->>Engine: execute(command)
-    Engine-->>UI: structured lines, clear flag or timeline
-    alt Standard command
-        UI->>View: Append output as text nodes
-    else Scripted introduction
-        UI->>View: Hide active prompt
-        loop Each timeline step
-            UI->>View: Stream one line / update progress
-        end
-        UI->>View: Restore active prompt
-    else Clean / clear
-        UI->>View: Empty output buffer
-    end
-    Visitor->>View: Select output and copy with browser controls
-    Note over UI,View: No global click-to-focus, and no auto-scroll during selection
+flowchart TD
+    A["Command input"] --> B{"Shortcut?"}
+    B -->|No| E["Execute in virtual shell"]
+    B -->|Yes| C["Show full command"]
+    C --> D["Pause 280 ms"]
+    D --> E
+    E --> F{"Result"}
+    F -->|Lines| G["Append output"]
+    F -->|Script| H["Stream steps"]
+    F -->|Clean| I["Clear display"]
 ```
 
-Selection is a native browser interaction. Do not restore focus automatically
-after a command or after the launch script: clicking the terminal's output
-must not collapse a highlighted passage. While a script is running, Ctrl+C
-copies an existing text selection; with no selection it interrupts the
-script.
+For scripts, the active shell prompt remains hidden until playback finishes
+or is interrupted. **Text selection and copying are native browser actions**,
+not additional interpreter commands. Terminal output must not steal focus or
+scroll underneath an active selection. Ctrl+C copies selected text; without
+a selection, it interrupts an active script or pending shortcut.
 
 ### README SVG build and verification
 

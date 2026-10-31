@@ -214,3 +214,13 @@ test('staged shortcuts can be canceled safely and do not animate typed character
   assert.match(app, /if \(existingEntry && !response\.timeline\)/);
   assert.match(app, /reducedMotion\.matches \? 0 : SHORTCUT_REPLY_DELAY_MS/);
 });
+
+test('architecture diagrams use compact Mermaid flowcharts', () => {
+  const doc = readFileSync(new URL('../docs/DEVELOPMENT.md', import.meta.url), 'utf8');
+  const diagrams = [...doc.matchAll(/```mermaid\n([\s\S]*?)\n```/g)];
+  assert.equal(diagrams.length, 3);
+  assert.ok(diagrams.every(item => /^flowchart (?:TD|TB|LR)\n/.test(item[1])));
+  assert.doesNotMatch(doc, /sequenceDiagram/);
+  assert.match(doc, /Pause 280 ms/);
+});
+
