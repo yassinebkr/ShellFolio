@@ -350,7 +350,7 @@ test('README SVG pauses clearly between commands without reverse erasure', () =>
 test('shortcut completion always restores the editable prompt and keyboard focus', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  const restore = app.slice(app.indexOf('function restorePrompt('), app.indexOf('function sleep('));
+  const restore = app.slice(app.indexOf('function restorePrompt('), app.indexOf('async function playLaunch('));
   assert.match(restore, /if \(activeLaunch \|\| pendingShortcut\) return false;/);
   assert.match(restore, /input\.readOnly = false;/);
   assert.match(restore, /form\.hidden = false;/);
