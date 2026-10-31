@@ -1,20 +1,16 @@
 # ShellFolio
 
-**Your portfolio. Your terminal. Your rules.**
-
-A customizable Debian/XFCE-style portfolio in the browser. A curated virtual
-shell, not a real Linux terminal.
+A Debian/XFCE-inspired terminal for exploring my electronics, embedded Linux,
+and software projects.
 
 [Open ShellFolio](https://yassinebkr.github.io/ShellFolio/) ·
 [Read the launch sequence](launch-script.js)
 
 [![Animated ShellFolio terminal with project commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
-*The SVG is a non-interactive preview. Click it to use the live terminal.*
-
 ## Explore
 
-- **Start:** a short simulated `./launch-interactive.sh` introduction plays on arrival.
+- **Start:** `./launch-interactive.sh` opens with an animated introduction.
 - **Navigate:** type `help`, `projects`, `skills`, `ls`, or `inspect lora`.
 - **Use shortcuts:** Run, Clean and project links sit below the output.
 - **Use a keyboard:** Tab/→ complete commands; ↑/↓ browse history.
@@ -50,8 +46,7 @@ python3 -m unittest discover -s tests -p 'test_demo_timing.py'
 npm run demo
 ```
 
-The site runs entirely in the browser, without a backend shell. GitHub Pages
-publishes the public repository's `main` branch from the root.
+GitHub Pages publishes the site from `main` at the repository root.
 
 [Architecture and developer guide](docs/DEVELOPMENT.md) ·
 [Customization guide](docs/CUSTOMIZATION.md) ·
