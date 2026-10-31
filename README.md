@@ -14,7 +14,7 @@ ShellFolio provides a read-only virtual filesystem with `ls -l`, `cd`, `cat`, `t
 
 The normal website URL and the README launcher (`?run=launch`) both start by typing and running the simulated command `./launch-interactive.sh`; it displays a short introduction, while the on-screen suggestions let visitors explore without typing. No real shell script is executed. The launcher streams its output as a short, interruptible terminal sequence, with in-place ASCII progress indicators and incremental text. The active Bash prompt appears only when the script completes or is interrupted. Press **Esc** to show the remaining output immediately or **Ctrl+C** to interrupt. Reduced-motion preferences show the results without animation. The original file listing can still be opened via [`?view=listing`](https://yassinebkr.github.io/ShellFolio/?view=listing).
 
-The simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
+Clicking a shortcut shows its complete shell command immediately, then reveals the response after a brief pause, as though Enter had just been pressed. Manual commands still run immediately.\n\nThe simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
 
 ## Customization
 

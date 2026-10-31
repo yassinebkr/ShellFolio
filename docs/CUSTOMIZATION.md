@@ -76,6 +76,22 @@ The File/Edit/View/Terminal/Tabs/Help menu labels and window controls are
 **visual-only**, intentionally without click handlers or misleading actions.
 The command prompt and quick-action buttons provide real interaction.
 
+### Shortcut execution timing
+
+A quick-action click prints the full command on its own shell prompt at once,
+then waits **280 ms** before showing its response (equivalent to a short pause
+after pressing Enter). There is **no per-character typing animation** for
+shortcuts. The default automatic `./launch-interactive.sh` introduction still
+types the command progressively; invoking Run from the quick-action rail does
+not. The script's own staged loading indicators and line-by-line output remain.
+
+Run, Clean and all configured presets use the same read-only interpreter as
+manual commands. A second shortcut interrupts any previous animation or
+pending shortcut. During the pause the active input prompt is hidden; after
+the response it returns normally. Escape and Ctrl+C can interrupt a pending
+shortcut, while an active text selection keeps Ctrl+C available for copying.
+With reduced-motion enabled, the extra pause is skipped.
+
 ## 4. Personalize project evidence and the introductory script
 
 Change the virtual filesystem and the built-in commands in `engine.js`,

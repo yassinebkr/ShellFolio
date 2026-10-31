@@ -192,3 +192,25 @@ test('README demo generator reads shortcut configuration, not a second list', ()
     assert.ok(svg.includes('>' + action.label.toLowerCase() + '</text>'));
   }
 });
+
+test('quick-action command is displayed first, then its output is appended', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(app, /const SHORTCUT_REPLY_DELAY_MS = 280/);
+  assert.match(app, /const entry = displayCommand\(raw, engine\.location, \[\]\)/);
+  assert.match(app, /await sleep\(reducedMotion\.matches \? 0 : SHORTCUT_REPLY_DELAY_MS/);
+  assert.match(app, /submitCommand\(raw, \{ existingEntry: entry \}\)/);
+  assert.match(app, /if \(response\.lines\.length\)/);
+  assert.match(app, /existingEntry\.appendChild\(result\)/);
+  assert.match(app, /button\.addEventListener\('click', \(\) => \{ void runQuickAction\(shortcut\.command\); \}\)/);
+});
+
+test('staged shortcuts can be canceled safely and do not animate typed characters', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  assert.match(app, /function cancelPendingShortcut\(\)/);
+  assert.match(app, /current\.controller\.abort\('interrupt'\)/);
+  assert.match(app, /pendingShortcut !== current/);
+  assert.match(app, /if \(activeLaunch\) cancelLaunch\('interrupt'\)/);
+  assert.match(app, /if \(!pendingShortcut\) \{/);
+  assert.match(app, /if \(existingEntry && !response\.timeline\)/);
+  assert.match(app, /reducedMotion\.matches \? 0 : SHORTCUT_REPLY_DELAY_MS/);
+});

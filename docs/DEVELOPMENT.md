@@ -96,6 +96,22 @@ Commands include `help`, `ls -l`, `cd`, `pwd`, `cat`, `tree`, `skills`, `project
 
 The XFCE menu labels and window controls remain non-interactive visual chrome. The Run and Clean quick actions are interactive; Clean resets the entire visible terminal. The active prompt remains hidden throughout script playback and returns only after completion or interruption. The quick-action rail is a discreet strip of text commands, not a stack of boxed cards.
 
+### Shortcut staging
+
+Quick-action buttons call `runQuickAction()` rather than invoking
+`submitCommand()` synchronously. The application inserts the complete shell
+command as a DOM entry **immediately**, hides the active prompt, then waits
+280 ms before calling the production interpreter. It appends structured
+response nodes to that **same entry**, preserving the command on screen
+rather than rebuilding the terminal.
+
+For Run, the normal virtual-launch timeline begins after the pause. Clean
+clears the output buffer after the pause. When another shortcut is clicked,
+the pending controller is aborted and its command is marked `^C`; any
+running launch is also interrupted. Reduced-motion preferences skip the
+artificial pause. Typed commands submitted by pressing Enter retain their
+existing immediate execution semantics.
+
 ## Personalization
 
 Quick actions, their labels and optional predefined responses are

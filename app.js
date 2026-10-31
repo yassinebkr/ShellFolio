@@ -17,6 +17,10 @@ const completionOptions = $('completion-options');
 let historyIndex = 0;
 let completionCandidates = [];
 let activeLaunch = null;
+let pendingShortcut = null;
+
+/** Short pause between showing a shortcut's full command and its response. */
+const SHORTCUT_REPLY_DELAY_MS = 280;
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -145,8 +149,12 @@ async function playLaunch(entry, timeline, typedCommand = '') {
   } finally {
     if (activeLaunch === run) {
       activeLaunch = null;
-      input.readOnly = false;
-      form.hidden = false;
+      // A shortcut chosen during playback may already be awaiting its own
+      // response; do not prematurely show the next interactive prompt.
+      if (!pendingShortcut) {
+        input.readOnly = false;
+        form.hidden = false;
+      }
       // The persistent quick-action rail remains interactive throughout.
       // Keep the selection and active element untouched. The visitor can
       // click the prompt to type; completion does not require autofocus.
@@ -232,12 +240,11 @@ function refreshCompletion(showMatches = false) {
   completionOptions.textContent = completionOptions.hidden ? '' : suggestion.matches.slice(0, 8).join('    ');
 }
 
-function submitCommand(value = input.value, { typeCommand = false } = {}) {
+function submitCommand(value = input.value, { typeCommand = false, existingEntry = null } = {}) {
   if (activeLaunch) {
-    // Allow a visitor to choose a shortcut instead of watching the full intro.
-    // The pending animation settles in a microtask before the next command.
+    // A manual command cannot overlap a running launch sequence.
     cancelLaunch('interrupt');
-    window.setTimeout(() => submitCommand(value, { typeCommand }), 0);
+    window.setTimeout(() => submitCommand(value, { typeCommand, existingEntry }), 0);
     return;
   }
   const raw = String(value).trim();
@@ -245,14 +252,26 @@ function submitCommand(value = input.value, { typeCommand = false } = {}) {
   const location = engine.location;
   const response = engine.execute(raw);
   if (response.clear) {
-    // Clean clears all output including the static neofetch heading.
+    // Clean clears the whole screen after the shortcut's brief delay.
     output.replaceChildren();
   } else if (response.timeline) {
-    const entry = displayCommand(typeCommand ? '' : raw, location, []);
-    // The startup prompt is visibly typed; a manual replay starts immediately.
+    const entry = existingEntry || displayCommand(typeCommand ? '' : raw, location, []);
+    // Startup is typed progressively; shortcuts print the entire command at once.
     void playLaunch(entry, response.timeline, typeCommand ? raw : '');
+  } else if (existingEntry) {
+    // Append to the already-visible command instead of redrawing its prompt.
+    if (response.lines.length) {
+      const result = document.createElement('div');
+      result.className = 'entry-result';
+      response.lines.forEach(line => renderLine(line, result));
+      existingEntry.appendChild(result);
+    }
   } else {
     displayCommand(raw, location, response.lines);
+  }
+  if (existingEntry && !response.timeline) {
+    input.readOnly = false;
+    form.hidden = false;
   }
   pwdLabel.textContent = ':' + engine.location;
   windowTitle.textContent = `Terminal - yassine@debian: ${engine.location}`;
@@ -310,8 +329,70 @@ input.addEventListener('keydown', event => {
   }
 });
 /**
+ * Interrupt a shortcut still in its confirmation pause. Its command remains
+ * visible in history and receives ^C, like a canceled terminal invocation.
+ */
+function cancelPendingShortcut() {
+  if (!pendingShortcut) return false;
+  const current = pendingShortcut;
+  pendingShortcut = null;
+  current.controller.abort('interrupt');
+  const result = document.createElement('div');
+  result.className = 'entry-result';
+  const row = document.createElement('div');
+  row.className = 'line script-muted';
+  row.textContent = '^C';
+  result.appendChild(row);
+  current.entry.appendChild(result);
+  if (!activeLaunch) {
+    input.readOnly = false;
+    form.hidden = false;
+  }
+  return true;
+}
+
+/**
+ * Quick actions behave like a concise terminal macro:
+ * - show the full invocation immediately (no typewriter effect);
+ * - wait briefly, as if Enter had just been pressed;
+ * - run it through the same virtual shell as manual keyboard input.
+ *
+ * Each pending shortcut is abortable, so successive clicks cannot make stale
+ * responses appear out of order. The initial auto-launch is unaffected.
+ */
+async function runQuickAction(command) {
+  const raw = String(command).trim();
+  if (!raw) return;
+  cancelPendingShortcut();
+  if (activeLaunch) cancelLaunch('interrupt');
+
+  const entry = displayCommand(raw, engine.location, []);
+  const current = { controller: new AbortController(), entry };
+  pendingShortcut = current;
+  form.hidden = true;
+  input.readOnly = true;
+  scrollToBottom();
+
+  try {
+    await sleep(reducedMotion.matches ? 0 : SHORTCUT_REPLY_DELAY_MS, current.controller.signal);
+    if (pendingShortcut !== current) return;
+    pendingShortcut = null;
+    // The existing line stays mounted; only its output is appended later.
+    submitCommand(raw, { existingEntry: entry });
+  } catch {
+    // A newer shortcut or Ctrl+C already marked this invocation interrupted.
+  } finally {
+    if (pendingShortcut === current) {
+      pendingShortcut = null;
+      input.readOnly = false;
+      form.hidden = false;
+    }
+  }
+}
+
+/**
  * Build the always-visible visitor shortcuts from the public configuration.
- * All buttons share the same command handler as a manually entered command.
+ * The buttons have a short response delay; typed commands remain immediate.
  */
 function renderQuickActions() {
   const rail = $('quick-commands');
@@ -326,24 +407,25 @@ function renderQuickActions() {
     button.dataset.command = shortcut.command;
     button.textContent = shortcut.label;
     button.title = shortcut.command;
-    button.addEventListener('click', () => submitCommand(shortcut.command));
+    button.addEventListener('click', () => { void runQuickAction(shortcut.command); });
     rail.appendChild(button);
   }
 }
 
 // The input is hidden during playback, so listen for interruption globally.
 document.addEventListener('keydown', event => {
-  if (!activeLaunch) return;
+  if (!activeLaunch && !pendingShortcut) return;
   if (event.key === 'Escape') {
     event.preventDefault();
-    cancelLaunch('skip');
+    if (pendingShortcut) cancelPendingShortcut();
+    else cancelLaunch('skip');
   } else if (event.ctrlKey && event.key.toLowerCase() === 'c') {
-    // Native Ctrl+C must copy selected text even during a running script.
-    // Ctrl+C is a shell interrupt only when there is no text selection.
+    // Native Ctrl+C must copy selected text even during any pending activity.
     const selection = window.getSelection();
     if (selection && !selection.isCollapsed) return;
     event.preventDefault();
-    cancelLaunch('interrupt');
+    if (pendingShortcut) cancelPendingShortcut();
+    else cancelLaunch('interrupt');
   }
 }, true);
 // Clicking terminal output should permit ordinary text selection and copy.
