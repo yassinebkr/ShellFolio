@@ -19,7 +19,8 @@ present your own work.
 - **Copy:** select and copy output using the browser's standard controls.
 
 Selecting a shortcut prints the full command immediately, then shows its
-result after a brief pause.
+result after a brief pause. A **ShellFolio on GitHub** link in the bottom bar
+opens the source repository.
 
 ## Customize
 
@@ -29,6 +30,7 @@ result after a brief pause.
 | Projects, commands, virtual filesystem | [`engine.js`](engine.js) |
 | Introductory sequence | [`launch-script.js`](launch-script.js) |
 | Window and colors | [`style.css`](style.css) |
+| Source repository link | [`portfolio.config.js`](portfolio.config.js) → `repositoryLink` |
 
 See the [customization guide](docs/CUSTOMIZATION.md) for examples and setup.
 

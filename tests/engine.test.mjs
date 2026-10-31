@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { TerminalEngine, resolvePath, tokenize } from '../engine.js';
 import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 import { initialScene } from '../startup.js';
-import { quickActions, presetResponses } from '../portfolio.config.js';
+import { quickActions, presetResponses, repositoryLink } from '../portfolio.config.js';
 import { readFileSync } from 'node:fs';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
@@ -216,3 +216,18 @@ test('architecture diagrams use compact Mermaid flowcharts', () => {
 
 
 
+
+test('terminal footer offers a configurable external source link', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.equal(repositoryLink.url, 'https://github.com/yassinebkr/ShellFolio');
+  assert.match(repositoryLink.text, /ShellFolio.*GitHub/);
+  assert.match(app, /source\.className = 'source-repo-link'/);
+  assert.match(app, /source\.href = repositoryLink\.url/);
+  assert.match(app, /source\.target = '_blank'/);
+  assert.match(app, /source\.rel = 'noopener noreferrer'/);
+  assert.match(app, /rail\.appendChild\(source\)/);
+  assert.match(css, /\.source-repo-link/);
+  assert.match(html, /style\.css\?v=11/);
+});

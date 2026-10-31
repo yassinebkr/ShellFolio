@@ -5,6 +5,12 @@
  * the HTML layout or browser event controller. Every label and response
  * becomes public when deployed with GitHub Pages.
  */
+/** Link visible in the terminal footer. Update this when forking ShellFolio. */
+export const repositoryLink = Object.freeze({
+  text: 'ShellFolio on GitHub ↗',
+  url: 'https://github.com/yassinebkr/ShellFolio'
+});
+
 export const quickActions = Object.freeze([
   { label: 'Run', command: './launch-interactive.sh' },
   { label: 'Clean', command: 'clean' },

@@ -319,3 +319,26 @@ body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--te
   .terminal > .menu-bar { gap: 10px; }
   .terminal > .quick-commands button { font-size: 11px; }
 }
+
+/* Project attribution lives in the same footer as the virtual shortcuts. */
+.terminal > .quick-commands .source-repo-link {
+  margin-left: auto;
+  padding: 4px 1px;
+  flex: none;
+  font: 11px/1.5 var(--mono);
+  color: #93a7b6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.terminal > .quick-commands .source-repo-link:hover {
+  color: #d6e7f3;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.terminal > .quick-commands .source-repo-link:focus-visible {
+  outline: 1px solid #a0bbff;
+  outline-offset: 4px;
+}
+@media (max-width: 700px) {
+  .terminal > .quick-commands .source-repo-link { font-size: 10.5px; }
+}

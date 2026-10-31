@@ -1,7 +1,7 @@
 /** Browser controller for ShellFolio's read-only terminal simulator. */
 import { TerminalEngine } from './engine.js';
 import { initialScene } from './startup.js';
-import { quickActions } from './portfolio.config.js';
+import { quickActions, repositoryLink } from './portfolio.config.js';
 
 const engine = new TerminalEngine();
 const $ = id => document.getElementById(id);
@@ -410,6 +410,16 @@ function renderQuickActions() {
     button.addEventListener('click', () => { void runQuickAction(shortcut.command); });
     rail.appendChild(button);
   }
+
+  // Visible source attribution is an external link, not a virtual command.
+  const source = document.createElement('a');
+  source.className = 'source-repo-link';
+  source.textContent = repositoryLink.text;
+  source.href = repositoryLink.url;
+  source.target = '_blank';
+  source.rel = 'noopener noreferrer';
+  source.setAttribute('aria-label', 'Open ShellFolio source repository on GitHub');
+  rail.appendChild(source);
 }
 
 // The input is hidden during playback, so listen for interruption globally.

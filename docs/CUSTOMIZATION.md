@@ -12,6 +12,7 @@ visitor-facing labels and responses live in `portfolio.config.js`.
 | Projects and virtual folders | `engine.js` |
 | Introductory content | `launch-script.js` |
 | Terminal appearance | `style.css` |
+| Source repository link | `portfolio.config.js` → `repositoryLink` |
 | Initial route | `startup.js` |
 
 ## 1. Choose the shortcuts
@@ -26,7 +27,8 @@ export const quickActions = Object.freeze([
 ```
 
 The labels remain visible under the terminal. Every shortcut calls the same
-virtual command interpreter as typed input.
+virtual command interpreter as typed input. A separate **ShellFolio on GitHub**
+link opens the source repository; change `repositoryLink` when forking.
 
 ## 2. Add your own responses
 
