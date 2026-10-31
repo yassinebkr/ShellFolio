@@ -1,13 +1,13 @@
 /** Browser controller for ShellFolio's read-only terminal simulator. */
-import { TerminalEngine } from './engine.js';
+import { TerminalEngine } from './engine.js?v=14';
 import { initialScene } from './startup.js';
-import { quickActions, repositoryLink } from './portfolio.config.js';
+import { quickActions, repositoryLink } from './portfolio.config.js?v=14';
 
 const engine = new TerminalEngine();
 const $ = id => document.getElementById(id);
 const output = $('output');
 // Cache the actual neofetch block from the introductory screen before the
-// visitor can run Clean. Later commands clone this same markup, not a second
+// visitor can run Clear. Later commands clone this same markup, not a second
 // simplified rendering or a hardcoded duplicate profile.
 const initialSystemProfile = output.querySelector('.sysfetch')?.cloneNode(true);
 const form = $('prompt-form');
@@ -199,8 +199,10 @@ function renderLine(content, container) {
     if (part.style) node.className = part.style;
     if (part.href) {
       node.href = part.href;
-      node.target = '_blank';
-      node.rel = 'noopener noreferrer';
+      if (part.href.startsWith('https://')) {
+        node.target = '_blank';
+        node.rel = 'noopener noreferrer';
+      }
     }
     row.appendChild(node);
   }
@@ -285,7 +287,7 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
   const location = engine.location;
   const response = engine.execute(raw);
   if (response.clear) {
-    // Clean clears the whole screen after the shortcut's brief delay.
+    // Clear wipes the whole screen after the shortcut's brief delay.
     output.replaceChildren();
   } else if (response.timeline) {
     const entry = existingEntry || displayCommand(typeCommand ? '' : raw, location, []);
