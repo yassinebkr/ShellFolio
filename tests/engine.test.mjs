@@ -229,7 +229,7 @@ test('terminal footer offers a configurable external source link', () => {
   assert.match(app, /source\.rel = 'noopener noreferrer'/);
   assert.match(app, /rail\.appendChild\(source\)/);
   assert.match(css, /\.source-repo-link/);
-  assert.match(html, /style\.css\?v=11/);
+  assert.match(html, /style\.css\?v=12/);
 });
 
 test('web cursor matches the animated SVG block while preserving native editing', () => {
