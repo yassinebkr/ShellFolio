@@ -80,7 +80,7 @@ test('live completions handle commands, project names, options and paths', () =>
   assert.deepEqual(shell.suggest('ls -l wor'), { replacement: 'ls -l workspace/', matches: ['workspace/'] });
   assert.deepEqual(shell.suggest('inspect lo'), { replacement: 'inspect lora', matches: ['lora'] });
   assert.deepEqual(shell.suggest('open cin'), { replacement: 'open cinemapi5', matches: ['cinemapi5'] });
-  assert.deepEqual(shell.suggest('c').matches, ['cd', 'cat', 'clear', 'clean', 'contact']);
+  assert.deepEqual(shell.suggest('c').matches, ['cd', 'cat', 'clear', 'contact']);
   assert.equal(shell.suggest('unknown').matches.length, 0);
   assert.deepEqual(shell.suggest('').matches, []);
   shell.execute('cd workspace/projects');
@@ -132,23 +132,47 @@ test('custom visitor shortcuts and predefined responses run through the same she
   }
   assert.equal(shell.suggest('cont').replacement, 'contact');
   assert.match(stringify(shell.execute('contact')), /github.com\/yassinebkr/);
+  assert.match(stringify(shell.execute('contact')), /yabbo01@gmail.com/);
   assert.match(stringify(shell.execute('contact private')), /unexpected arguments/);
   assert.ok(Object.hasOwn(presetResponses, 'contact'));
 });
 
 
-test('Run and Clean shortcuts execute virtual commands', () => {
+test('contact provides clickable, configured GitHub and email destinations', () => {
+  const shell = new TerminalEngine();
+  const parts = shell.execute('contact').lines.flatMap(row => row.parts);
+  const links = parts.filter(part => part.href);
+  assert.deepEqual(links.map(part => part.href), [
+    'https://github.com/yassinebkr',
+    'mailto:yabbo01@gmail.com'
+  ]);
+  assert.ok(links.every(part => part.style === 'blue'));
+  assert.ok(links.some(part => part.text.includes('GitHub:')));
+  assert.ok(links.some(part => part.text.includes('Email:')));
+  assert.match(stringify(shell.execute('help')), /contact.*GitHub and email/);
+});
+
+test('mailto links do not get forced into a new browser tab', () => {
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const engine = readFileSync(new URL('../engine.js', import.meta.url), 'utf8');
+  assert.match(app, /node\.href = part\.href/);
+  assert.match(app, /if \(part\.href\.startsWith\('https:\/\/'\)\)/);
+  assert.match(engine, /\^mailto:/);
+});
+
+test('Run and Clear shortcuts execute virtual commands', () => {
   const shell = new TerminalEngine();
   const run = quickActions.find(action => action.label === 'Run');
-  const clean = quickActions.find(action => action.label === 'Clean');
+  const clear = quickActions.find(action => action.label === 'Clear');
   assert.equal(run?.command, './launch-interactive.sh');
-  assert.equal(clean?.command, 'clean');
+  assert.equal(clear?.command, 'clear');
+  assert.equal(quickActions.some(action => action.label === 'Clean'), false);
   assert.ok(shell.execute(run.command).timeline?.length > 0);
   assert.ok(shell.execute('run').timeline?.length > 0);
-  assert.equal(shell.execute(clean.command).clear, true);
-  assert.equal(shell.execute('clear').clear, true);
+  assert.equal(shell.execute(clear.command).clear, true);
+  assert.equal(shell.execute('clean').clear, true); // Backward-compatible alias
   assert.equal(shell.execute('reset').clear, true);
-  assert.ok(shell.suggest('cle').matches.includes('clean'));
+  assert.deepEqual(shell.suggest('cle').matches, ['clear']);
 });
 
 test('XFCE chrome is inert and script lifecycle controls Bash prompt', () => {
@@ -359,7 +383,7 @@ test('shortcut completion always restores the editable prompt and keyboard focus
   assert.match(app, /restorePrompt\(\{ focus: focusWhenReady \}\)/);
   assert.match(app, /restorePrompt\(\{ focus: current\.focusWhenDone \}\)/);
   assert.match(app, /run\.startedByShortcut/);
-  assert.match(html, /app\.js\?v=13/);
+  assert.match(html, /app\.js\?v=14/);
 });
 test('shortcut focus restoration respects another action and text selection', () => {
   const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
