@@ -2,7 +2,7 @@
 
 An interactive, Debian/XFCE-style terminal portfolio running in the browser.
 
-[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/)
+[**Open the live terminal**](https://yassinebkr.github.io/ShellFolio/) · [**Run the README launcher**](https://yassinebkr.github.io/ShellFolio/?run=launch)
 
 [![ShellFolio virtual terminal demonstration](assets/demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
@@ -12,7 +12,7 @@ The animation above replays four commands through ShellFolio's **real virtual co
 
 ShellFolio provides a read-only virtual filesystem with `ls -l`, `cd`, `cat`, `tree`, `pwd`, `projects`, and `inspect`, plus shell-style history and live completion suggestions. Type `pr` to see `projects` suggested inline, then press **Tab** or **→** to accept it. The responsive interface follows the visual conventions of XFCE Terminal on Debian 13.
 
-The simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
+The README launcher runs the simulated command `./launch-interactive.sh` on arrival (`?run=launch`); it displays a short introduction, while the on-screen suggestions let visitors explore without typing. No real shell script is executed.\n\nThe simulation presents curated engineering data; it executes entirely in the browser and uses no backend shell or arbitrary system command execution.
 
 ## Run locally
 

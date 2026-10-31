@@ -55,10 +55,18 @@ function displayCommand(command, location, lines) {
   output.appendChild(entry);
 }
 
-/** Keep the initial output in sync with the actual interpreter. */
-const initialSession = new TerminalEngine();
-const listing = initialSession.execute('ls -l ~/workspace');
-displayCommand('ls -l ~/workspace', '~', listing.lines);
+/**
+ * Keep the initial session consistent with the virtual interpreter.
+ * The README launcher uses ?run=launch; only that exact flag is accepted.
+ */
+const launcherRequested = new URLSearchParams(window.location.search).get('run') === 'launch';
+if (launcherRequested) {
+  submitCommand('./launch-interactive.sh');
+} else {
+  const initialSession = new TerminalEngine();
+  const listing = initialSession.execute('ls -l ~/workspace');
+  displayCommand('ls -l ~/workspace', '~', listing.lines);
+}
 
 function refreshCompletion(showMatches = false) {
   const typed = input.value;
@@ -134,6 +142,9 @@ input.addEventListener('keydown', event => {
     event.preventDefault();
     submitCommand('clear');
   }
+});
+document.querySelectorAll('[data-command]').forEach(button => {
+  button.addEventListener('click', () => submitCommand(button.dataset.command));
 });
 body.addEventListener('click', e => {
   if (e.target.closest('a,button,input')) return;

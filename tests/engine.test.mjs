@@ -82,3 +82,14 @@ test('live completions handle commands, project names, options and paths', () =>
   shell.execute('cd workspace/projects');
   assert.equal(shell.suggest('cd lo').replacement, 'cd lora/');
 });
+
+test('README launcher is a safe virtual command and appears in completion', () => {
+  const shell = new TerminalEngine();
+  const text = stringify(shell.execute('./launch-interactive.sh'));
+  assert.match(text, /SESSION START/);
+  assert.match(text, /Sony IMX283/);
+  assert.match(text, /45 km LoRa/);
+  assert.equal(shell.suggest('./launch').replacement, './launch-interactive.sh');
+  assert.match(stringify(shell.execute('./launch-interactive.sh --exec')), /unexpected arguments/);
+  assert.match(stringify(shell.execute('./unknown.sh')), /command unavailable/);
+});

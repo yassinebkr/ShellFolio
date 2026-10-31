@@ -141,3 +141,138 @@ body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--te
   .sysfetch { margin-left: 0; }
   .window-title { inset-inline: 65px; }
 }
+
+
+/*
+ * XFCE window proportions and portfolio navigation.
+ * These rules intentionally override the initial full-screen prototype.
+ * The browser loads this stylesheet with a versioned URL to prevent an
+ * old GitHub Pages/Firefox cache from mixing HTML and CSS revisions.
+ */
+@media (min-width: 701px) {
+  body {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    min-height: 100dvh;
+  }
+  .terminal {
+    width: min(980px, 100%);
+    max-width: 980px;
+    height: min(680px, calc(100dvh - 48px));
+    min-height: min(480px, calc(100dvh - 48px));
+    margin: 0;
+    flex: none;
+  }
+}
+.terminal > .menu-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 19px;
+  white-space: nowrap;
+  padding-inline: 16px;
+}
+.terminal > .menu-bar > span {
+  display: inline-block;
+  flex: none;
+}
+.terminal-body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: normal;
+}
+.sysfetch {
+  gap: 20px;
+  padding-left: 15px;
+  align-items: center;
+  margin: 21px 0 26px;
+}
+.sysfetch-logo {
+  flex: 0 0 180px;
+  width: 180px;
+}
+.sysfetch-logo img {
+  width: 154px;
+  height: 154px;
+}
+.sysfetch-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.58;
+}
+.sysfetch-info dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.sysfetch-info dt {
+  flex: 0 0 92px;
+  white-space: nowrap;
+}
+.sysfetch-info dd {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.sys-user { overflow-wrap: normal; }
+#prompt-form { min-height: 24px; }
+.quick-commands {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 25px;
+  padding-top: 12px;
+  border-top: 1px solid #222;
+}
+.quick-label {
+  color: #7b8187;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+.quick-commands button {
+  border: 1px solid #373a40;
+  border-radius: 3px;
+  background: #121518;
+  color: #aeb9c7;
+  font: 11px/1.4 var(--mono);
+  padding: 4px 7px;
+}
+.quick-commands button:hover {
+  border-color: #60816b;
+  background: #1c2420;
+  color: #a5ecb1;
+}
+.quick-commands button:focus-visible {
+  outline: 2px solid #8fbaff;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  body { display: block; padding: 0; }
+  .terminal { width: 100%; max-width: 100%; }
+  .terminal-body { padding: 18px 14px; }
+  .sysfetch {
+    align-items: flex-start;
+    gap: 12px;
+    padding-left: 0;
+    margin: 16px 0 23px;
+  }
+  .sysfetch-logo { flex: 0 0 76px; width: 76px; padding-top: 16px; }
+  .sysfetch-logo img { width: 72px; height: 72px; }
+  .sysfetch-info { font-size: 11px; line-height: 1.55; }
+  .sysfetch-info dl > div { display: flex; gap: 5px; }
+  .sysfetch-info dt { flex: 0 0 66px; }
+  .terminal > .menu-bar { gap: 12px; padding-inline: 10px; }
+  .quick-commands { gap: 6px; margin-top: 20px; }
+  .quick-commands button { font-size: 10px; }
+}
+@media (max-width: 420px) {
+  .sysfetch-logo { display: none; }
+  .sysfetch { margin: 17px 0 23px; }
+  .sysfetch-info dt { flex: 0 0 69px; }
+  .terminal > .menu-bar { gap: 10px; padding-inline: 9px; }
+}

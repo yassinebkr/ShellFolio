@@ -35,3 +35,19 @@ python3 tools/make_demo.py
 This repository owns every file used to develop, test, document and publish the interactive GitHub Pages site. The complementary profile-README SVG generator is maintained separately at <https://github.com/yassinebkr/test>; it is intended to become a distinct public repository after its name and documentation are finalized.
 
 The two projects can reference each other's published documentation while retaining independent codebases and build pipelines.
+
+## GitHub profile launcher integration
+
+The separate SVG profile README links to `https://yassinebkr.github.io/ShellFolio/?run=launch`.
+The site recognizes only `run=launch` and executes a built-in, read-only virtual
+`./launch-interactive.sh` command. Nothing is fetched or run on the host machine.
+
+Suggested commands are normal buttons below the prompt; clicking one invokes the
+same interpreter as pressing Enter. Inline completion and Tab remain supported.
+
+## Responsive bounds
+
+The desktop XFCE window has a finite width/height, with the page canvas as a
+neutral surround. The system-information panel uses a fixed label column and
+flexible values. Narrow screens shrink the Debian mark and wrap values only
+within their value column, not between labels and values.
