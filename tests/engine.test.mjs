@@ -36,7 +36,7 @@ test('invalid paths and arguments return visible errors', () => {
   assert.match(stringify(shell.execute('cd ../missing')), /directory unavailable/);
   assert.match(stringify(shell.execute('ls -z')), /unsupported option/);
   assert.match(stringify(shell.execute('inspect nonexistent')), /unknown project/);
-  assert.match(stringify(shell.execute('run sh')), /command unavailable/);
+  assert.match(stringify(shell.execute('not-a-command sh')), /command unavailable/);
   assert.match(stringify(shell.execute('cat "unfinished')), /unmatched quotation/);
 });
 test('project claims distinguish validated measurements from targets', () => {
