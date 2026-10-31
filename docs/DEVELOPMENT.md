@@ -68,7 +68,7 @@ disables the automatic focus. **Escape** explicitly finishes the current
 introduction and focuses the ready prompt, unless a text selection is active.
 Regular commands do not steal focus.
 
-Shortcut completion (including `Clean` and `Run`) uses one
+Shortcut completion (including `Clear` and `Run`) uses one
 `restorePrompt()` path that clears `readOnly` and `hidden` before focusing.
 While a script or another shortcut is still active, it waits instead of
 restoring prematurely. Clicking elsewhere or selecting output disables
