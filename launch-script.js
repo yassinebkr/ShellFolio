@@ -7,7 +7,7 @@
  * interrupt, and adapt to reduced-motion user preferences.
  */
 export const LAUNCH_STEPS = Object.freeze([
-  { kind: 'line', text: 'ShellFolio / ~/workspace', style: 'cyan bold', delay: 160 },
+  { kind: 'line', text: 'SHELLFOLIO / SESSION START', style: 'cyan bold', delay: 160 },
   { kind: 'progress', label: 'reading virtual profile', duration: 720 },
   { kind: 'type', text: "Hi, I'm Yassine.", speed: 26, delay: 190 },
   { kind: 'line', text: 'I design electronics, work with embedded Linux, and build the software around them.', delay: 190 },
@@ -15,7 +15,7 @@ export const LAUNCH_STEPS = Object.freeze([
   { kind: 'progress', label: 'indexing portfolio projects', duration: 860 },
   { kind: 'line', text: 'Selected work', style: 'cyan bold', delay: 160 },
   { kind: 'line', text: '  cinemapi5    Raspberry Pi 5 + Sony IMX283 cinema camera', delay: 160 },
-  { kind: 'line', text: '  lora         45 km telemetry link validated in the field', delay: 160 },
+  { kind: 'line', text: '  lora         45 km LoRa telemetry link validated in the field', delay: 160 },
   { kind: 'line', text: '  bigbrain     Multi-agent UI and workflow research', delay: 260 },
   { kind: 'line', text: '', delay: 130 },
   { kind: 'progress', label: 'preparing virtual workspace', duration: 600 },
