@@ -51,3 +51,19 @@ The desktop XFCE window has a finite width/height, with the page canvas as a
 neutral surround. The system-information panel uses a fixed label column and
 flexible values. Narrow screens shrink the Debian mark and wrap values only
 within their value column, not between labels and values.
+
+## Authored launch sequence
+
+`launch-script.js` contains a small declarative timeline for the
+`./launch-interactive.sh` command. The command engine exposes both a
+completed transcript (for automated tests and non-animated consumers) and
+the timeline (for the browser). `app.js` progressively renders each step,
+updates ASCII progress indicators in place, and types selected lines at
+human-readable speed without injecting HTML.
+
+All status messages refer to the *virtual* portfolio model. There are no
+network fetches, real filesystem probes, or claims about hardware currently
+connected to the visitor. The user can interrupt with Ctrl+C, immediately
+finish the sequence with Escape, or enable `prefers-reduced-motion` to
+receive output without animation. During playback, interactive commands
+are temporarily disabled to avoid overlapping sessions.

@@ -276,3 +276,14 @@ body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--te
   .sysfetch-info dt { flex: 0 0 69px; }
   .terminal > .menu-bar { gap: 10px; padding-inline: 9px; }
 }
+
+/* Terminal-script output uses the same monospace grid as normal command rows. */
+.entry-result .script-progress { color: #aeb8c0; }
+.entry-result .script-cyan { color: #79dbe1; font-weight: 700; }
+.entry-result .script-green { color: #82e58f; }
+.entry-result .script-muted { color: #a3aab1; }
+.quick-commands button:disabled { opacity: .55; cursor: default; }
+#command-input[readonly] { caret-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .entry-result .script-progress { transition: none; animation: none; }
+}

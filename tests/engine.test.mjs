@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { TerminalEngine, resolvePath, tokenize } from '../engine.js';
+import { LAUNCH_STEPS, resolvedLaunchLines } from '../launch-script.js';
 
 const stringify = response => response.lines.flatMap(line => line.parts.map(part => part.text)).join('\n');
 
@@ -92,4 +93,16 @@ test('README launcher is a safe virtual command and appears in completion', () =
   assert.equal(shell.suggest('./launch').replacement, './launch-interactive.sh');
   assert.match(stringify(shell.execute('./launch-interactive.sh --exec')), /unexpected arguments/);
   assert.match(stringify(shell.execute('./unknown.sh')), /command unavailable/);
+});
+
+test('launcher shares a declarative, sequential transcript with the browser', () => {
+  const shell = new TerminalEngine();
+  const response = shell.execute('./launch-interactive.sh');
+  assert.equal(response.timeline, LAUNCH_STEPS);
+  assert.deepEqual(response.lines.map(l => l.parts[0].text), resolvedLaunchLines().map(l => l.text));
+  assert.ok(LAUNCH_STEPS.filter(s => s.kind === 'progress').length >= 2);
+  assert.ok(LAUNCH_STEPS.some(s => s.kind === 'type'));
+  assert.ok(LAUNCH_STEPS.every(s => ['line', 'progress', 'type'].includes(s.kind)));
+  assert.match(stringify(response), /45 km.*validated/i);
+  assert.ok(!JSON.stringify(LAUNCH_STEPS).includes('<script'));
 });

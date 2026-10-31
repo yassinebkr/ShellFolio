@@ -14,6 +14,122 @@ const ghostSuffix = $('ghost-suffix');
 const completionOptions = $('completion-options');
 let historyIndex = 0;
 let completionCandidates = [];
+let activeLaunch = null;
+
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+/**
+ * Abortable delay used for the script's human-scale pacing. The animation
+ * never blocks the main thread; Ctrl+C cancels pending timers immediately.
+ */
+function sleep(ms, signal) {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  if (!ms) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    function onAbort() {
+      window.clearTimeout(timer);
+      signal.removeEventListener('abort', onAbort);
+      reject(signal.reason);
+    }
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+function scrollToBottom() {
+  body.scrollTop = body.scrollHeight;
+}
+
+/**
+ * Script output is built with textContent, not HTML strings. A single status
+ * row is updated in-place for each spinner, like a normal CLI progress line.
+ */
+async function playLaunch(entry, timeline) {
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const result = document.createElement('div');
+  result.className = 'entry-result';
+  result.setAttribute('aria-label', 'Virtual portfolio launcher output');
+  entry.appendChild(result);
+  const run = { controller };
+  activeLaunch = run;
+  input.readOnly = true;
+  document.querySelectorAll('[data-command]').forEach(button => { button.disabled = true; });
+  const quickPace = () => reducedMotion.matches;
+  let currentRow = null;
+  let stepIndex = 0;
+  const renderFinal = (step, existingRow = null) => {
+    const row = existingRow || document.createElement('div');
+    row.className = 'line';
+    row.textContent = step.kind === 'progress' ? '[ok] ' + step.label : step.text;
+    if (step.style) row.className += ' ' + step.style.split(/\s+/).map(c => 'script-' + c).join(' ');
+    if (!existingRow) result.appendChild(row);
+    scrollToBottom();
+  };
+  try {
+    for (stepIndex = 0; stepIndex < timeline.length; stepIndex++) {
+      const step = timeline[stepIndex];
+      currentRow = null;
+      await sleep(quickPace() ? 0 : step.delay || 0, signal);
+      if (step.kind === 'progress') {
+        const row = document.createElement('div');
+        row.className = 'line script-progress';
+        result.appendChild(row);
+        currentRow = row;
+        const frames = ['|', '/', '-', '\\'];
+        const iterations = quickPace() ? 0 : Math.max(2, Math.round(step.duration / 120));
+        for (let tick = 0; tick < iterations; tick++) {
+          row.textContent = '[' + frames[tick % frames.length] + '] ' + step.label;
+          scrollToBottom();
+          await sleep(120, signal);
+        }
+        renderFinal(step, row);
+      } else if (step.kind === 'type' && !quickPace()) {
+        const row = document.createElement('div');
+        row.className = 'line' + (step.style ? ' ' + step.style.split(/\s+/).map(c => 'script-' + c).join(' ') : '');
+        result.appendChild(row);
+        currentRow = row;
+        for (const character of step.text) {
+          row.textContent += character;
+          scrollToBottom();
+          await sleep(step.speed || 16, signal);
+        }
+      } else {
+        renderFinal(step);
+      }
+    }
+  } catch {
+    if (signal.reason === 'skip') {
+      // Finish the current partially rendered line and all remaining steps.
+      if (currentRow) renderFinal(timeline[stepIndex], currentRow);
+      else renderFinal(timeline[stepIndex]);
+      for (const step of timeline.slice(stepIndex + 1)) renderFinal(step);
+    } else {
+      const interrupted = document.createElement('div');
+      interrupted.className = 'line script-muted';
+      interrupted.textContent = '^C';
+      result.appendChild(interrupted);
+    }
+  } finally {
+    if (activeLaunch === run) {
+      activeLaunch = null;
+      input.readOnly = false;
+      document.querySelectorAll('[data-command]').forEach(button => { button.disabled = false; });
+      input.focus({ preventScroll: true });
+      refreshCompletion();
+      scrollToBottom();
+    }
+  }
+}
+
+function cancelLaunch(reason) {
+  if (!activeLaunch) return false;
+  activeLaunch.controller.abort(reason);
+  return true;
+}
 
 function renderLine(content, container) {
   const row = document.createElement('div');
@@ -53,6 +169,7 @@ function displayCommand(command, location, lines) {
     entry.appendChild(result);
   }
   output.appendChild(entry);
+  return entry;
 }
 
 /**
@@ -82,12 +199,20 @@ function refreshCompletion(showMatches = false) {
 }
 
 function submitCommand(value = input.value) {
+  if (activeLaunch) {
+    cancelLaunch('interrupt');
+    return;
+  }
   const raw = String(value).trim();
   if (!raw) { input.focus(); return; }
   const location = engine.location;
   const response = engine.execute(raw);
   if (response.clear) {
     output.querySelectorAll('.entry').forEach(entry => entry.remove());
+  } else if (response.timeline) {
+    const entry = displayCommand(raw, location, []);
+    // Asynchronous progress is intentional; avoid awaiting it in the input path.
+    void playLaunch(entry, response.timeline);
   } else {
     displayCommand(raw, location, response.lines);
   }
@@ -107,6 +232,20 @@ input.addEventListener('keyup', event => {
   if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) refreshCompletion();
 });
 input.addEventListener('keydown', event => {
+  if (activeLaunch && event.ctrlKey && event.key.toLowerCase() === 'c') {
+    event.preventDefault();
+    cancelLaunch('interrupt');
+    return;
+  }
+  if (activeLaunch && event.key === 'Escape') {
+    event.preventDefault();
+    cancelLaunch('skip');
+    return;
+  }
+  if (activeLaunch) {
+    if (event.key === 'Enter' || event.key === 'Tab') event.preventDefault();
+    return;
+  }
   if (event.key === 'ArrowUp') {
     event.preventDefault();
     historyIndex = Math.max(0, historyIndex - 1);

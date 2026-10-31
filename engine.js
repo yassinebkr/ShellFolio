@@ -6,6 +6,8 @@
  * uses a dedicated UI renderer for all HTML and link creation.
  */
 
+import { LAUNCH_STEPS, resolvedLaunchLines } from './launch-script.js';
+
 const home = '/home/yassine';
 const root = {
   hardware: {
@@ -178,18 +180,8 @@ export class TerminalEngine {
     if (command === 'exit') return { lines: lines('Session preserved. Type help to keep exploring.'), cwd: this.cwd };
     if (command === './launch-interactive.sh') {
       if (args.length) return { lines: err('launch-interactive.sh: unexpected arguments'), cwd: this.cwd };
-      return {
-        lines: [
-          line(segment('SHELLFOLIO / SESSION START', 'cyan bold')),
-          plain('Yassine — electronics, embedded systems and software'),
-          plain('Camera     Raspberry Pi 5 + Sony IMX283 / cinema workflow'),
-          plain('Telemetry  45 km LoRa wireless link validated in the field'),
-          plain('Workshop   KiCad · CNC · 3D printing · electronics assembly'),
-          plain('Explore    projects | skills | inspect lora | inspect cinemapi5'),
-          plain('Type help or select a command below to continue.')
-        ],
-        cwd: this.cwd
-      };
+      const lines = resolvedLaunchLines().map(item => line(segment(item.text, item.style)));
+      return { lines, timeline: LAUNCH_STEPS, cwd: this.cwd };
     }
     if (command === 'neofetch') return { lines: [line(segment('yassine@debian', 'green')), ...lines('OS         Debian GNU/Linux 13 (trixie)', 'Focus      Electronics / Embedded Systems', 'Toolchain  KiCad · Python · C · C++', 'Projects   CinemaPi5 · LoRa 45 km')], cwd: this.cwd };
     if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clear / reset         Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
