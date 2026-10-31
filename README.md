@@ -9,6 +9,8 @@ The repository is designed for anyone to adapt to their own portfolio.
 [Try the live demo](https://yassinebkr.github.io/ShellFolio/) ·
 [Read the launch sequence](launch-script.js)
 
+**The animated SVG below is a preview, not an interactive terminal. Click it to try the live demo.**
+
 [![Animated ShellFolio terminal with project commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
 
 ## Explore
