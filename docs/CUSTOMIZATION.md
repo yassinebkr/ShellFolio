@@ -21,7 +21,7 @@ visitor-facing labels and responses live in `portfolio.config.js`.
 ```js
 export const quickActions = Object.freeze([
   { label: 'Run', command: './launch-interactive.sh' },
-  { label: 'Clean', command: 'clean' },
+  { label: 'Clear', command: 'clear' },
   { label: 'Projects', command: 'projects' },
   { label: 'Contact', command: 'contact' }
 ]);
@@ -40,8 +40,9 @@ export const presetResponses = Object.freeze({
   contact: {
     description: 'Contact information',
     lines: [
-      'Contact',
-      'GitHub: https://github.com/your-account'
+      'CONTACT',
+      { text: 'GitHub: https://github.com/your-account', href: 'https://github.com/your-account' },
+      { text: 'Email: you@example.com', href: 'mailto:you@example.com' }
     ]
   }
 });
@@ -49,8 +50,11 @@ export const presetResponses = Object.freeze({
 
 Then register `{ label: 'Contact', command: 'contact' }` as a shortcut.
 
-Preset commands return escaped text and cannot execute scripts or system
-commands. Review public-facing contact information before publishing.
+Preset responses accept plain text or structured links using `text` and
+`href`. Only `https://` and `mailto:` destinations become clickable links;
+other schemes are displayed as plain text. All content is rendered safely as
+DOM text and cannot execute scripts or system commands. Review public-facing
+contact information before publishing.
 
 ## 3. Set up the introduction
 
@@ -70,7 +74,7 @@ Finish by inviting visitors to type `help` or use the shortcuts.
 | --- | --- |
 | Click a shortcut | Full command appears, result follows after 280 ms, then keyboard input works |
 | Click Run | Replay the introduction |
-| Click Clean | Clear visible terminal output |
+| Click Clear | Clear visible terminal output |
 | Select output | Normal browser selection and copy |
 | Press Escape | Finish the intro and focus the prompt, including after replay |
 | Start typing during intro | Complete the intro and keep the first character |
