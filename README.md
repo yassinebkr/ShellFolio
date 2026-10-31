@@ -1,9 +1,12 @@
 # ShellFolio
 
-A Debian/XFCE-inspired terminal for exploring my electronics, embedded Linux,
-and software projects.
+A **customizable terminal portfolio for GitHub Pages**, with a Debian/XFCE-inspired
+interface, a virtual filesystem, shell-style commands and configurable shortcuts.
 
-[Open ShellFolio](https://yassinebkr.github.io/ShellFolio/) ·
+The live demo uses my electronics, embedded Linux and software projects.
+The repository is designed for anyone to adapt to their own portfolio.
+
+[Try the live demo](https://yassinebkr.github.io/ShellFolio/) ·
 [Read the launch sequence](launch-script.js)
 
 [![Animated ShellFolio terminal with project commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
@@ -21,9 +24,12 @@ a **280 ms** pause. The introductory script has its own progressive animation.
 
 ## Make it yours
 
-Edit [`portfolio.config.js`](portfolio.config.js) to change the shortcuts
-and add read-only predefined responses. The
-[customization guide](docs/CUSTOMIZATION.md) walks through each step.
+Fork the repository to build your own terminal portfolio. Change the
+shortcuts and custom responses in [`portfolio.config.js`](portfolio.config.js),
+the projects and virtual filesystem in [`engine.js`](engine.js), and the
+introduction in [`launch-script.js`](launch-script.js).
+
+The [customization guide](docs/CUSTOMIZATION.md) covers these changes.
 
 The README's SVG is generated with [`tools/make_demo.py`](tools/make_demo.py).
 It replays commands through the same JavaScript interpreter as the website.
@@ -56,7 +62,8 @@ GitHub Pages publishes the site from `main` at the repository root.
 
 The [GitHub profile terminal SVG generator](https://github.com/yassinebkr/test)
 is a **separate project** (currently private, intended for a future public
-release). ShellFolio contains the interactive website and its own README demo.
+release). The GitHub profile README can link to a ShellFolio Pages instance;
+it is not required to use or customize ShellFolio.
 
 Originally inspired by [AienTech](https://github.com/AienTech/aientech).
 Debian artwork comes from [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/debian.svg);
