@@ -10,7 +10,7 @@ present your own work.
 
 **The animated SVG below is a preview, not an interactive terminal. Click it to try the live demo.**
 
-[![Animated ShellFolio terminal showing virtual commands and shortcuts](assets/terminal-demo.svg)](https://yassinebkr.github.io/ShellFolio/)
+[![Animated ShellFolio terminal showing virtual commands and shortcuts](assets/terminal-demo-replay.svg)](https://yassinebkr.github.io/ShellFolio/)
 
 ## Explore
 
