@@ -249,3 +249,31 @@ test('web cursor matches the animated SVG block while preserving native editing'
   assert.match(app, /document\.addEventListener\('selectionchange'/);
   assert.match(html, /style\.css\?v=12/);
 });
+
+test('manual neofetch requests the full initial Debian profile, not simplified lines', () => {
+  const shell = new TerminalEngine();
+  const response = shell.execute('neofetch');
+  const printed = stringify(response);
+  assert.equal(response.view, 'system-profile');
+  for (const term of ['Debian GNU/Linux 13', 'Shell', 'Xfce', 'xfce4-terminal', 'KiCad', 'CinemaPi5']) {
+    assert.ok(printed.includes(term), 'Missing neofetch field: ' + term);
+  }
+  assert.match(stringify(shell.execute('neofetch --bad')), /unexpected arguments/);
+  assert.notEqual(shell.execute('clear').view, 'system-profile');
+  assert.equal(shell.execute('neofetch').view, 'system-profile');
+});
+
+test('manual and shortcut neofetch reuse the same initial markup after clearing', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../style.css', import.meta.url), 'utf8');
+  assert.match(html, /class="sysfetch"/);
+  assert.match(html, /class="sysfetch-logo"/);
+  assert.match(html, /assets\/debian\.svg/);
+  assert.match(html, /class="palette"/);
+  assert.match(app, /initialSystemProfile = output\.querySelector\('\.sysfetch'\)\?\.cloneNode\(true\)/);
+  assert.match(app, /response\.view === 'system-profile' && initialSystemProfile/);
+  assert.match(app, /initialSystemProfile\.cloneNode\(true\)/);
+  assert.match(app, /output\.replaceChildren\(\)/);
+  assert.match(css, /\.sysfetch-info dl/);
+});

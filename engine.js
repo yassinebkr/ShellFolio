@@ -188,7 +188,27 @@ export class TerminalEngine {
       const lines = resolvedLaunchLines().map(item => line(segment(item.text, item.style)));
       return { lines, timeline: LAUNCH_STEPS, cwd: this.cwd };
     }
-    if (command === 'neofetch') return { lines: [line(segment('yassine@debian', 'green')), ...lines('OS         Debian GNU/Linux 13 (trixie)', 'Focus      Electronics / Embedded Systems', 'Toolchain  KiCad · Python · C · C++', 'Projects   CinemaPi5 · LoRa 45 km')], cwd: this.cwd };
+    if (command === 'neofetch') {
+      if (args.length) return { lines: err('neofetch: unexpected arguments'), cwd: this.cwd };
+      // Browser displays the same rich profile as the page's initial neofetch.
+      // Keep plain structured text for tests and other non-DOM consumers.
+      return {
+        view: 'system-profile',
+        lines: [
+          line(segment('yassine@debian', 'green')),
+          ...lines(
+            'OS         Debian GNU/Linux 13 (trixie)',
+            'Shell      bash',
+            'DE         Xfce',
+            'Terminal   xfce4-terminal',
+            'Focus      Electronics / Embedded Systems',
+            'Toolchain  KiCad / Python / C / C++',
+            'Projects   CinemaPi5 / LoRa telemetry'
+          )
+        ],
+        cwd: this.cwd
+      };
+    }
     if (command === 'help') return { lines: [line(segment('SHELLFOLIO — available commands', 'cyan bold')), ...lines('  help                  Show command reference', '  run / ./launch-interactive.sh  Replay the introduction', '  ls [-l] [path]        List workspace directories', '  cd <path>             Change virtual directory', '  pwd                   Print current directory', '  cat <file>            Read a technical document', '  tree [path]           Explore directory hierarchy', '  skills                Browse technical domains', '  projects              Browse engineering projects', '  inspect <project>     Read an engineering case study', '  open <project>        Open a public source repository', '  about / whoami        Engineer profile', '  history               Show executed commands', '  clean / clear / reset  Clear terminal output', '  Tab / ↑ / ↓           Complete and recall commands')], cwd: this.cwd };
     if (command === 'about') return { lines: [line(segment('YASSINE / ELECTRONICS & EMBEDDED SYSTEMS', 'cyan bold')), ...lines('Engineering across electronics, embedded Linux, software and digital fabrication.', 'Selected evidence: 45 km LoRa telemetry link and Raspberry Pi 5 cinema camera.', 'Approach: Design → Build → Test → Measure → Iterate.')], cwd: this.cwd };
     if (command === 'skills') return { lines: [line(segment('ENGINEERING DISCIPLINES', 'cyan bold')), ...groups.filter(x => x !== 'projects').map(name => line(segment(name.padEnd(14) + root[name].about, 'blue'))), plain('Tip: cd workspace/embedded && cat README.md')], cwd: this.cwd };

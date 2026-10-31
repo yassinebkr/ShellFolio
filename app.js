@@ -6,6 +6,10 @@ import { quickActions, repositoryLink } from './portfolio.config.js';
 const engine = new TerminalEngine();
 const $ = id => document.getElementById(id);
 const output = $('output');
+// Cache the actual neofetch block from the introductory screen before the
+// visitor can run Clean. Later commands clone this same markup, not a second
+// simplified rendering or a hardcoded duplicate profile.
+const initialSystemProfile = output.querySelector('.sysfetch')?.cloneNode(true);
 const form = $('prompt-form');
 const input = $('command-input');
 const terminalCursor = $('terminal-cursor');
@@ -272,6 +276,14 @@ function submitCommand(value = input.value, { typeCommand = false, existingEntry
     const entry = existingEntry || displayCommand(typeCommand ? '' : raw, location, []);
     // Startup is typed progressively; shortcuts print the entire command at once.
     void playLaunch(entry, response.timeline, typeCommand ? raw : '');
+  } else if (response.view === 'system-profile' && initialSystemProfile) {
+    const entry = existingEntry || displayCommand(raw, location, []);
+    const result = document.createElement('div');
+    result.className = 'entry-result';
+    // Cloning preserves the Debian SVG logo, all seven system fields and
+    // color swatches, including after clean/clear/reset.
+    result.appendChild(initialSystemProfile.cloneNode(true));
+    entry.appendChild(result);
   } else if (existingEntry) {
     // Append to the already-visible command instead of redrawing its prompt.
     if (response.lines.length) {

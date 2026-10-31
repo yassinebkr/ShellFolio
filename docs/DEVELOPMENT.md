@@ -12,6 +12,7 @@ a virtual filesystem, not the visitor's machine.
 | Command interpreter and virtual files | `engine.js` |
 | Shortcuts and custom responses | `portfolio.config.js` |
 | Introductory command sequence | `launch-script.js` |
+| Shared `neofetch` display | `index.html` → `.sysfetch`, cloned by `app.js` |
 | Default route and listing mode | `startup.js` |
 | Node unit tests | `tests/engine.test.mjs` |
 | Verification workflow | `.github/workflows/verify.yml` |
@@ -57,8 +58,20 @@ flowchart TD
 | Ctrl+C | Copy selected text, otherwise interrupt playback |
 | Tab / → | Accept unique command completion |
 | ↑ / ↓ | Browse command history |
+| `neofetch` | Render the complete Debian profile and palette, as on initial load |
 
 The browser does not take focus from a visitor's text selection.
+
+### Neofetch rendering
+
+The initial Debian profile lives in `index.html` as `.sysfetch`. On load,
+`app.js` preserves a copy of that element, then clones it whenever the
+interpreter returns `view: 'system-profile'`. Typed and shortcut commands
+use the same path, even after `clean`.
+
+The interpreter also supplies plain text lines for non-browser consumers.
+Edit the `.sysfetch` markup to change the visual profile; keep the fallback
+text in `engine.js` in sync. No new renderer or generated SVG is involved.
 
 ## Run and verify
 
