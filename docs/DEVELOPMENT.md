@@ -34,7 +34,40 @@ node --check engine.js
 python3 tools/make_demo.py
 ```
 
-`tools/make_demo.py` invokes the virtual shell and replays its responses into an animated, self-contained SVG. GitHub Actions confirms the generated SVG matches the version tracked in Git.
+## SVG replay layout contract
+
+`tools/make_demo.py` invokes the same virtual command interpreter as the
+website and turns its structured responses into a self-contained, CSS-animated
+SVG. Its demonstration currently replays `ls -l ~/workspace`,
+`cd workspace/projects`, `ls`, and `inspect lora`.
+
+The generator must preserve these display conventions:
+
+- The XFCE **menu labels** (`File`, `Edit`, `View`, `Terminal`,
+  `Tabs`, `Help`) are plain text on the gray menu bar, **not outlined
+  buttons**. The application and SVG use the same non-interactive chrome.
+- Prompt placement is calculated from the **actual number of lines returned
+  by the interpreter**: one 24px text row for the command itself, then one
+  for each output line. The next command starts immediately below the last
+  output line. Silent commands such as `cd` add no empty separator row.
+- Only **explicit empty lines in the interpreter output** count as blank
+  rows. Do not add artificial paragraph spacing between shell commands.
+- The final idle prompt uses the same accumulated baseline. Its cursor
+  follows the displayed prompt text.
+- Shortcut labels come directly from `portfolio.config.js` and remain
+  visual-only in the embedded README image. The live HTML buttons are
+  interactive.
+
+The SVG currently uses a fixed **1080 × 720** canvas with a bottom shortcut
+rail. If a personalized transcript becomes longer, inspect the final prompt
+and shortcut rail for overlap and adjust the canvas/rail positions in the
+generator accordingly. Vertical prompt spacing is content-derived; canvas
+height and shortcut positioning are not automatically resized.
+
+Regenerate the asset using `npm run demo` and inspect the updated README
+image before committing. GitHub Actions regenerates the SVG and checks for an
+exact match with the tracked `assets/demo.svg`.
+
 
 ## Repository separation
 

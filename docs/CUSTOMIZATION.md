@@ -9,7 +9,7 @@ shortcuts automatically. The XFCE menu labels are decorative. GitHub Pages serve
 
 ## 1. Decide what a visitor should discover
 
-Start from your portfolio's highest-value evidence. Define three to seven
+Start from your portfolio's highest-value evidence. Define a concise set of
 shortcuts that cover an introduction, concrete projects, relevant skills,
 and a way to get in touch. Avoid repeating the same destinations under
 different labels. Prefer verified measurements to broad claims.
@@ -100,14 +100,29 @@ Use `style.css` for window proportions, fonts, dropdowns and the
 persistent visitor-shortcut rail. The visual rendering is intentionally
 separate from content configuration.
 
-`assets/demo.svg` is the generated animated preview used in this
-repository's README. Do not edit its generated markup by hand:
-`tools/make_demo.py` replays commands through the real `engine.js`
-and produces the preview. The shortcut labels are loaded from
-`portfolio.config.js` at build time so the preview stays synchronized with
-the live site's visitor actions. GitHub displays SVG previews as images:
-the buttons in the illustration are visual only, while the website buttons
-execute their corresponding virtual commands.
+The README's `assets/demo.svg` is a generated **visual replay**, not a second
+terminal implementation. Do not modify its SVG markup by hand.
+`tools/make_demo.py` runs commands through the production `engine.js` and
+renders their structured output.
+
+The preview follows the same visual conventions as the live window:
+**unboxed XFCE menu labels**, non-interactive window chrome, and a consistent
+24px terminal row height. Prompts follow their actual output lines
+**without blank separators**; a silent command such as `cd` is followed
+immediately by the next prompt. An explicitly empty output line is preserved
+if the command genuinely emits one.
+
+Shortcut labels come from `portfolio.config.js` during generation, keeping
+the bottom rail synchronized with the website. GitHub displays embedded SVGs
+as images: the shortcut buttons shown in the README are only illustrations,
+while the website's shortcuts execute virtual commands.
+
+The SVG currently has a fixed 1080 × 720 viewBox and a bottom shortcut rail.
+When you substantially change the demo commands or their output lengths,
+check that the final idle prompt does not overlap the rail. Adjust the
+canvas size and footer positions in `tools/make_demo.py` if needed, then
+regenerate the asset. The generator automatically advances **prompt
+baselines**, but does not automatically size the entire SVG viewport.
 
 The related Python SVG generator for the GitHub profile README lives in
 a separate repository: https://github.com/yassinebkr/test
@@ -121,7 +136,8 @@ npm test
 node --check app.js
 node --check engine.js
 node --check portfolio.config.js
-python3 tools/make_demo.py
+npm run demo
+git diff --check
 git diff -- assets/demo.svg
 python3 -m http.server 8000
 ```
