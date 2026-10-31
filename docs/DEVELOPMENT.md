@@ -13,7 +13,7 @@ a virtual filesystem, not the visitor's machine.
 | Shortcuts and custom responses | `portfolio.config.js` |
 | Introductory command sequence | `launch-script.js` |
 | Shared `neofetch` display | `index.html` → `.sysfetch`, cloned by `app.js` |
-| Default route and listing mode | `startup.js` |
+| Direct, profile-continuation and listing routes | `startup.js` |
 | Node unit tests | `tests/engine.test.mjs` |
 | Verification workflow | `.github/workflows/verify.yml` |
 
@@ -86,7 +86,9 @@ The cloned profile must use `white-space: normal`. Shell output uses
 
 The interpreter also supplies plain text lines for non-browser consumers.
 Edit the `.sysfetch` markup to change the visual profile; keep the fallback
-text in `engine.js` in sync. No new renderer or generated SVG is involved.
+text in `engine.js` in sync. The separate `github-profile-terminal-svg`
+generator also has a matching `Projects` field. No new browser renderer
+or generated SVG is involved in this app.
 
 ## Run and verify
 
@@ -102,7 +104,15 @@ node --check portfolio.config.js
 GitHub Actions validates the interactive application. GitHub Pages publishes
 `main` / `/(root)`.
 
-The default URL starts the introductory script. `?view=listing` opens the
-virtual workspace listing directly; `?run=launch` explicitly starts the intro.
+The default URL starts the introductory script immediately. Links from the
+GitHub profile use `?run=launch`: `app.js` keeps the initial `neofetch`
+markup, reconstructs the same `ls -l ~/workspace` listing shown at the end
+of the profile SVG, then types `./launch-interactive.sh` and plays its
+existing animation. This handoff preserves the final SVG scene rather than
+repeating its earlier commands. `?view=listing` displays the listing without
+launching the script, and takes precedence when both parameters are present.
+The virtual listing uses the same five directory names and dates as the
+generated profile SVG. The default route, Run shortcut, input focus and Escape
+handling otherwise remain unchanged.
 
 See [customization](CUSTOMIZATION.md) to replace the showcased projects.
